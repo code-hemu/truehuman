@@ -433,7 +433,3 @@ npm run dev            # watch mode for tests
 ## License
 
 GPL-3.0
-
-## CI
-
-Push/PR to `main` triggers GitHub Actions — single job running unit tests + `tsc --noEmit`.
