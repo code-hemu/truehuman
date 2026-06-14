@@ -1,4 +1,37 @@
 export type CheckCategory = "automation" | "browser_integrity" | "iframe_integrity" | "fingerprinting" | "behavioral"
+export type CheckStatus = "pass" | "suspicious" | "fail"
+export type AnalyzeMode = "public" | "detailed" | "debug"
+
+export interface CheckEvidence {
+  detector: string
+  message: string
+  code: number | string
+}
+
+export interface CheckResult {
+  name: CheckCategory
+  status: CheckStatus
+  riskDelta: number
+  evidence: CheckEvidence[]
+}
+
+export interface DebugInfo {
+  integrityCodes: (string | number)[]
+  iframeComparisons: number
+  environmentFlag: boolean | null
+  errors: number[]
+}
+
+export interface AnalyzeResult {
+  verdict: "human" | "suspicious" | "bot"
+  human: boolean
+  direct: boolean
+  riskScore: number
+  riskLevel: "low" | "medium" | "high" | "critical"
+  confidence: number
+  checks: CheckResult[] | { passed: number; suspicious: number; failed: number }
+  debug?: DebugInfo
+}
 
 export interface RegistryEntry {
   category: CheckCategory
@@ -13,7 +46,7 @@ const DOMAIN_DETECTORS: Record<number, { detector: string; category: CheckCatego
   32: { detector: "screen", category: "browser_integrity", props: ["width", "height", "orientation"] },
   33: { detector: "date", category: "browser_integrity", props: ["toString", "getTimezoneOffset"] },
   34: { detector: "iframe-element", category: "iframe_integrity", props: ["src", "srcdoc"] },
-  35: { detector: "prototype", category: "fingerprinting", props: Array.from({ length: 10 }, (_, i) => `method#${i + 1}`) },
+  35: { detector: "prototype", category: "fingerprinting", props: Array.from({ length: 15 }, (_, i) => `method#${i + 1}`) },
 }
 
 const PREFIX_LABELS: Record<number, string> = {
@@ -69,6 +102,9 @@ const EXACT: Record<string, RegistryEntry> = {
   "60.1": { category: "behavioral", detector: "storage", message: "Page reloaded more than 5 times", riskDelta: 5 },
   "60.2": { category: "behavioral", detector: "storage", message: "localStorage is disabled or cleared", riskDelta: 3 },
   "60.3": { category: "behavioral", detector: "storage", message: "localStorage access error occurred", riskDelta: 8 },
+
+  "47.1": { category: "fingerprinting", detector: "canvas", message: "Canvas 2D context unavailable (blocked)", riskDelta: 25 },
+  "47.2": { category: "fingerprinting", detector: "canvas", message: "Canvas pixel data all zeros (noise injection)", riskDelta: 30 },
 }
 
 export function lookupCode(code: string | number): RegistryEntry | null {

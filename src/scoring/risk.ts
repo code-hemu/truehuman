@@ -1,5 +1,6 @@
-import { lookupCode, type CheckCategory, type RegistryEntry } from "./registry.js"
-import type { CheckEvidence, CheckResult, CheckStatus } from "./types.js"
+import { lookupCode, type CheckCategory } from "../types/index.js"
+import type { CheckEvidence, CheckResult, CheckStatus } from "../types/index.js"
+import { computeVerdict, type VerdictResult } from "./confidence.js"
 
 const ALL_CATEGORIES: CheckCategory[] = [
   "automation",
@@ -77,18 +78,6 @@ function decodeSignals(
   return { evidence, riskScore }
 }
 
-function computeVerdict(riskScore: number): { verdict: "human" | "suspicious" | "bot"; isHuman: boolean; riskLevel: "low" | "medium" | "high" | "critical"; confidence: number } {
-  const verdict = riskScore <= 15 ? "human" as const : riskScore <= 50 ? "suspicious" as const : "bot" as const
-  const riskLevel = riskScore <= 15 ? "low" as const : riskScore <= 40 ? "medium" as const : riskScore <= 70 ? "high" as const : "critical" as const
-  const confidence = Math.round((100 - riskScore) * 100) / 100
-  return {
-    verdict,
-    isHuman: verdict === "human",
-    riskLevel,
-    confidence,
-  }
-}
-
 function buildDetailedChecks(evidence: Map<CheckCategory, CheckEvidence[]>): CheckResult[] {
   const results: CheckResult[] = []
   for (const category of ALL_CATEGORIES) {
@@ -119,7 +108,7 @@ function buildMinimalChecks(checks: CheckResult[]): { passed: number; suspicious
 
 export interface ScoreResult {
   verdict: "human" | "suspicious" | "bot"
-  isHuman: boolean
+  human: boolean
   riskScore: number
   riskLevel: "low" | "medium" | "high" | "critical"
   confidence: number
@@ -133,7 +122,7 @@ export function score(
   errors: number[],
 ): ScoreResult {
   const { evidence, riskScore } = decodeSignals(integritychecks, comparisons, environmentFlag, errors)
-  const verdictInfo = computeVerdict(riskScore)
+  const verdictInfo: VerdictResult = computeVerdict(riskScore)
   const detailedChecks = buildDetailedChecks(evidence)
 
   return {
@@ -143,6 +132,6 @@ export function score(
   }
 }
 
-export function buildMinimalResponse(checks: CheckResult[]): { passed: number; suspicious: number; failed: number } {
+export function buildPublicResponse(checks: CheckResult[]): { passed: number; suspicious: number; failed: number } {
   return buildMinimalChecks(checks)
 }

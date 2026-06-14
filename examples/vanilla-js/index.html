@@ -45,7 +45,8 @@
     // Top-level verdict
     html += '<div class="grid">'
     html += '  <span class="label">Verdict</span> <span class="' + verdictClass + '"><strong>' + r.verdict + '</strong></span>'
-    html += '  <span class="label">Is Human</span> <span class="pass">' + r.isHuman + '</span>'
+    html += '  <span class="label">Is Human</span> <span class="pass">' + r.human + '</span>'
+    html += '  <span class="label">Direct Open</span> <span class="' + (r.direct ? 'fail' : 'pass') + '">' + r.direct + '</span>'
     html += '  <span class="label">Risk Score</span> <span>' + r.riskScore + ' <span class="badge ' + riskBadge + '">' + r.riskLevel + '</span></span>'
     html += '  <span class="label">Confidence</span> <span>' + r.confidence + '%</span>'
     html += '</div>'
@@ -70,7 +71,7 @@
     html += '  <summary>Debug Info</summary>'
     html += '  <p style="margin-top:.5rem"><strong>Integrity Codes:</strong> [' + r.debug.integrityCodes.join(', ') + ']</p>'
     html += '  <p><strong>Iframe Comparisons:</strong> ' + r.debug.iframeComparisons + '</p>'
-    html += '  <p><strong>usgcp:</strong> ' + r.debug.usgcp + '</p>'
+    html += '  <p><strong>Environment Flag:</strong> ' + r.debug.environmentFlag + '</p>'
     html += '  <p><strong>Errors:</strong> [' + r.debug.errors.join(', ') + ']</p>'
     html += '</details>'
 

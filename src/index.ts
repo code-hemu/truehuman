@@ -1,2 +1,2 @@
-export { analyze } from "./core/pipeline.js"
-export type { AnalyzeResult } from "./core/types.js"
+export { analyze } from "./analyze.js"
+export type { AnalyzeResult } from "./types/index.js"

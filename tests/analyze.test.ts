@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest"
-import { analyze } from "../src/core/pipeline.js"
+import { analyze } from "../src/analyze.js"
 
 describe("analyze", () => {
-  it("default mode (minimal) returns expected shape", () => {
+  it("default mode (public) returns expected shape", () => {
     const r = analyze()
     expect(typeof r.verdict).toBe("string")
-    expect(typeof r.isHuman).toBe("boolean")
+    expect(typeof r.human).toBe("boolean")
+    expect(typeof r.direct).toBe("boolean")
     expect(typeof r.riskScore).toBe("number")
     expect(typeof r.riskLevel).toBe("string")
     expect(typeof r.confidence).toBe("number")

@@ -1,22 +1,19 @@
-import type { OutputMode } from "./types.js"
-import { createSandboxedIframe, cleanupIframe } from "../support/iframe.js"
-import { checkEnvironment } from "../detectors/environment.js"
-import { checkUserAgent } from "../detectors/user-agent.js"
-import { checkEssentialApis } from "../detectors/essential-apis.js"
-import { checkNavigation } from "../detectors/navigation.js"
-import { computeNeuralScore } from "../models/screen-neural.js"
-import { runIntegrityChecks } from "../integrity/index.js"
-import { checkAutomation } from "../detectors/automation.js"
-import { checkScreenHeuristics } from "../detectors/screen.js"
-import { checkBrowserFlags } from "../detectors/browser-flags.js"
-import { checkStorage } from "../detectors/storage.js"
-import { score, buildMinimalResponse } from "./scoring.js"
-import type { AnalyzeResult } from "./types.js"
+import type { AnalyzeMode } from "./types/index.js"
+import type { AnalyzeResult } from "./types/index.js"
+import { createSandboxedIframe, cleanupIframe } from "./utils/helpers.js"
+import { checkEnvironment, checkUserAgent, checkEssentialApis, checkNavigation, checkDocumentIntegrity, checkNavigatorIntegrity, checkDateIntegrity, checkStorage } from "./detectors/headless.js"
+import { computeScreenNN, checkScreenHeuristics, checkScreenIntegrity } from "./detectors/screen.js"
+import { checkAutomation, checkBrowserFlags } from "./detectors/webdriver.js"
+import { checkIframeElementIntegrity } from "./detectors/iframe.js"
+import { checkWebglIntegrity } from "./detectors/webgl.js"
+import { checkCanvasPrototypes, checkCanvasFingerprint } from "./detectors/canvas.js"
+import { score, buildPublicResponse } from "./scoring/risk.js"
 
-export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
+export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
   const errors: number[] = []
   const comparisons: boolean[] = []
   let environmentFlag: boolean | null = null
+  let direct = false
   const integritychecks: (string | number)[] = []
 
   const iframe = createSandboxedIframe()
@@ -27,6 +24,7 @@ export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
   try {
     if (checkEnvironment()) {
       environmentFlag = true
+      direct = true
     }
   } catch {
     // no error push in original
@@ -53,7 +51,7 @@ export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
   }
 
   try {
-    const nnScore = computeNeuralScore(
+    const nnScore = computeScreenNN(
       screen.width,
       screen.height,
       window.innerWidth,
@@ -76,7 +74,53 @@ export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
   }
 
   try {
-    integritychecks.push(...runIntegrityChecks(iframe, comparisons, errors))
+    try {
+      integritychecks.push(...checkDocumentIntegrity(iframe, comparisons))
+    } catch {
+      errors.push(30)
+    }
+
+    try {
+      integritychecks.push(...checkNavigatorIntegrity(iframe, comparisons))
+    } catch {
+      errors.push(31)
+    }
+
+    try {
+      integritychecks.push(...checkScreenIntegrity())
+    } catch {
+      errors.push(32)
+    }
+
+    try {
+      integritychecks.push(...checkDateIntegrity(iframe, comparisons))
+    } catch {
+      errors.push(33)
+    }
+
+    try {
+      integritychecks.push(...checkIframeElementIntegrity(iframe))
+    } catch {
+      errors.push(34)
+    }
+
+    try {
+      checkWebglIntegrity(iframe, comparisons, integritychecks)
+    } catch {
+      errors.push(35)
+    }
+
+    try {
+      checkCanvasPrototypes(integritychecks)
+    } catch {
+      errors.push(35)
+    }
+
+    try {
+      integritychecks.push(...checkCanvasFingerprint())
+    } catch {
+      errors.push(47)
+    }
   } catch {
     // outer integrity catch (empty in original)
   }
@@ -110,7 +154,7 @@ export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
     integritychecks.push(...checkStorage())
   }
 
-  const { checks, verdict, isHuman, riskScore, riskLevel, confidence } = score(
+  const { checks, verdict, human, riskScore, riskLevel, confidence } = score(
     integritychecks,
     comparisons,
     environmentFlag,
@@ -119,11 +163,12 @@ export function analyze(mode: OutputMode = "minimal"): AnalyzeResult {
 
   const result: AnalyzeResult = {
     verdict,
-    isHuman,
+    human,
+    direct,
     riskScore,
     riskLevel,
     confidence,
-    checks: mode === "minimal" ? buildMinimalResponse(checks) : checks,
+    checks: mode === "public" ? buildPublicResponse(checks) : checks,
   }
 
   if (mode === "debug") {
