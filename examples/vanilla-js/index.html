@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-<!--
-  For best results, serve via a local HTTP server:
-    npx serve .
-    python -m http.server
-    npx http-server
--->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -12,35 +6,75 @@
   <title>truehuman - Vanilla JS</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 640px; margin: 0 auto; color: #1a1a2e; }
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 720px; margin: 0 auto; color: #1a1a2e; }
     h1 { font-size: 1.5rem; margin-bottom: 1rem; }
     #result { background: #f4f4f8; padding: 1.25rem; border-radius: 10px; font-size: .875rem; white-space: pre-wrap; word-break: break-all; }
     .loading { color: #666; }
-    .signal { display: inline-block; background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: .75rem; margin: 2px; }
+    .grid { display: grid; grid-template-columns: auto 1fr; gap: .5rem .75rem; align-items: center; }
+    .label { font-weight: 600; }
     .pass { color: #166534; }
+    .suspicious { color: #854d0e; }
     .fail { color: #991b1b; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: .75rem; font-weight: 600; }
+    .badge-pass { background: #dcfce7; color: #166534; }
+    .badge-suspicious { background: #fef9c3; color: #854d0e; }
+    .badge-fail { background: #fee2e2; color: #991b1b; }
+    .section { margin-top: 1rem; border-top: 1px solid #e0e0e8; padding-top: .75rem; }
+    .section-title { font-weight: 600; margin-bottom: .5rem; }
+    .check-row { display: flex; align-items: center; gap: .5rem; padding: .25rem 0; }
+    .evidence { margin-left: 1.5rem; font-size: .8rem; color: #555; }
+    details { margin-top: 1rem; }
+    summary { cursor: pointer; font-weight: 600; color: #555; }
   </style>
 </head>
 <body>
-  <h1>🛡️ truehuman - Vanilla JS Demo</h1>
-  <div id="result" class="loading">Analyzing browser…</div>
+  <h1>&#65039; truehuman - Vanilla JS Demo</h1>
+  <div id="result" class="loading">Analyzing browser&#8230;</div>
 
   <script src="../../dist/truehuman.min.js"></script>
   <script>
-    truehuman.analyze().then(function (r) {
-      var el = document.getElementById('result')
-      var signalHtml = r.signals.length > 0
-        ? '<p><strong>Signals detected:</strong></p><p>' + r.signals.map(function (s) { return '<span class="signal">' + s + '</span>' }).join(' ') + '</p>'
-        : '<p class="pass">✅ No suspicious signals detected</p>'
+    var r = truehuman.analyze("debug")
+    var el = document.getElementById('result')
+    el.className = ''
 
-      el.className = ''
-      el.innerHTML =
-        '<p><strong>Human:</strong> <span class="' + (r.human ? 'pass' : 'fail') + '">' + r.human + '</span></p>' +
-        '<p><strong>Score:</strong> ' + r.score + '/100</p>' +
-        '<p><strong>Risk:</strong> <span style="color:' + (r.risk === 'high' ? '#991b1b' : r.risk === 'medium' ? '#b45309' : '#166534') + '">' + r.risk + '</span></p>' +
-        '<p><strong>Fingerprint:</strong> <code>' + r.fingerprint.slice(0, 32) + '…</code></p>' +
-        signalHtml
-    })
+    var verdictClass = r.verdict === 'human' ? 'pass' : r.verdict === 'suspicious' ? 'suspicious' : 'fail'
+    var riskBadge = 'badge-' + (r.riskLevel === 'low' ? 'pass' : r.riskLevel === 'medium' ? 'suspicious' : 'fail')
+
+    var html = ''
+
+    // Top-level verdict
+    html += '<div class="grid">'
+    html += '  <span class="label">Verdict</span> <span class="' + verdictClass + '"><strong>' + r.verdict + '</strong></span>'
+    html += '  <span class="label">Is Human</span> <span class="pass">' + r.isHuman + '</span>'
+    html += '  <span class="label">Risk Score</span> <span>' + r.riskScore + ' <span class="badge ' + riskBadge + '">' + r.riskLevel + '</span></span>'
+    html += '  <span class="label">Confidence</span> <span>' + r.confidence + '%</span>'
+    html += '</div>'
+
+    // Detailed checks
+    html += '<div class="section">'
+    html += '  <div class="section-title">Checks</div>'
+    for (var i = 0; i < r.checks.length; i++) {
+      var c = r.checks[i]
+      var cls = c.status === 'pass' ? 'pass' : c.status === 'suspicious' ? 'suspicious' : 'fail'
+      html += '  <div class="check-row"><span class="badge badge-' + cls + '">' + c.status + '</span> <strong>' + c.name + '</strong> <span style="color:#888;font-size:.8rem">(risk: ' + c.riskDelta + ')</span></div>'
+      if (c.evidence && c.evidence.length > 0) {
+        for (var j = 0; j < c.evidence.length; j++) {
+          html += '    <div class="evidence">&rarr; [' + c.evidence[j].detector + '] ' + c.evidence[j].message + ' <code>' + c.evidence[j].code + '</code></div>'
+        }
+      }
+    }
+    html += '</div>'
+
+    // Debug toggle
+    html += '<details>'
+    html += '  <summary>Debug Info</summary>'
+    html += '  <p style="margin-top:.5rem"><strong>Integrity Codes:</strong> [' + r.debug.integrityCodes.join(', ') + ']</p>'
+    html += '  <p><strong>Iframe Comparisons:</strong> ' + r.debug.iframeComparisons + '</p>'
+    html += '  <p><strong>usgcp:</strong> ' + r.debug.usgcp + '</p>'
+    html += '  <p><strong>Errors:</strong> [' + r.debug.errors.join(', ') + ']</p>'
+    html += '</details>'
+
+    el.innerHTML = html
   </script>
 </body>
 </html>
