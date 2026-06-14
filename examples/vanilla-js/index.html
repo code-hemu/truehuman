@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+  For best results, serve via a local HTTP server:
+    npx serve .
+    python -m http.server
+    npx http-server
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>truehuman - Vanilla JS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 640px; margin: 0 auto; color: #1a1a2e; }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    #result { background: #f4f4f8; padding: 1.25rem; border-radius: 10px; font-size: .875rem; white-space: pre-wrap; word-break: break-all; }
+    .loading { color: #666; }
+    .signal { display: inline-block; background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: .75rem; margin: 2px; }
+    .pass { color: #166534; }
+    .fail { color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ truehuman - Vanilla JS Demo</h1>
+  <div id="result" class="loading">Analyzing browser…</div>
+
+  <script src="../../dist/truehuman.min.js"></script>
+  <script>
+    truehuman.analyze().then(function (r) {
+      var el = document.getElementById('result')
+      var signalHtml = r.signals.length > 0
+        ? '<p><strong>Signals detected:</strong></p><p>' + r.signals.map(function (s) { return '<span class="signal">' + s + '</span>' }).join(' ') + '</p>'
+        : '<p class="pass">✅ No suspicious signals detected</p>'
+
+      el.className = ''
+      el.innerHTML =
+        '<p><strong>Human:</strong> <span class="' + (r.human ? 'pass' : 'fail') + '">' + r.human + '</span></p>' +
+        '<p><strong>Score:</strong> ' + r.score + '/100</p>' +
+        '<p><strong>Risk:</strong> <span style="color:' + (r.risk === 'high' ? '#991b1b' : r.risk === 'medium' ? '#b45309' : '#166534') + '">' + r.risk + '</span></p>' +
+        '<p><strong>Fingerprint:</strong> <code>' + r.fingerprint.slice(0, 32) + '…</code></p>' +
+        signalHtml
+    })
+  </script>
+</body>
+</html>

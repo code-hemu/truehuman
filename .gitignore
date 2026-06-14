@@ -1,0 +1,16 @@
+# Node.js modules
+node_modules/
+
+# Coverage
+coverage/
+
+# Husky generated scripts
+.husky/
+
+# Build output
+dist/
+
+# Temporary/utility scripts
+scripts/
+
+index.js
