@@ -1,9 +1,7 @@
 <p align="center">
   <a href="https://github.com/code-hemu/truehuman">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="resources/logo_light.png" />
-      <source media="(prefers-color-scheme: light)" srcset="resources/logo_dark.png" />
-      <img src="resources/logo_light.png" alt="TrueHuman logo" width="312px" />
+      <img src="resources/logo.png.png" alt="TrueHuman logo" width="312px" />
     </picture>
   </a>
 </p>
