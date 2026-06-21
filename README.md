@@ -20,5 +20,3 @@
     <img src="https://data.jsdelivr.com/v1/package/npm/truehuman/badge?style=rounded" alt="jsDelivr">
   </a>
 </p>
-
-Bot detection library for web applications. Runs entirely in-browser - no external API calls, no CAPTCHAs, no server-side validation required.
