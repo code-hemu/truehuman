@@ -22,3 +22,5 @@ eslint.config.js
 rollup.config.js
 eslint.config.js
 
+index.js
+demo.js
