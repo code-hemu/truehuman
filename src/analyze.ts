@@ -1,53 +1,60 @@
 import type { AnalyzeMode } from "./types/index.js"
-import type { AnalyzeResult } from "./types/index.js"
-import { createSandboxedIframe, cleanupIframe } from "./utils/helpers.js"
-import { checkEnvironment, checkUserAgent, checkEssentialApis, checkNavigation, checkDocumentIntegrity, checkNavigatorIntegrity, checkDateIntegrity, checkStorage } from "./detectors/headless.js"
-import { computeScreenNN, checkScreenHeuristics, checkScreenIntegrity } from "./detectors/screen.js"
-import { checkAutomation, checkBrowserFlags } from "./detectors/webdriver.js"
-import { checkIframeElementIntegrity } from "./detectors/iframe.js"
-import { checkWebglIntegrity } from "./detectors/webgl.js"
-import { checkCanvasPrototypes, checkCanvasFingerprint } from "./detectors/canvas.js"
-import { score, buildPublicResponse } from "./scoring/risk.js"
+import type { AnalyzeResult, CheckComponent } from "./types/index.js"
+import { createSandboxedIframe, cleanupIframe, measureDuration } from "./utils/helpers.js"
+import { checkEnvironment, checkStorage } from "./detectors/headless.js"
+import { computeScreenNN } from "./detectors/screen.js"
+import { DETECTOR_REGISTRY } from "./registry.js"
+import { score } from "./scoring/risk.js"
+
+function addMeta(
+  meta: Map<CheckComponent, { duration: number; value: unknown }>,
+  comp: CheckComponent,
+  duration: number,
+  value: unknown,
+) {
+  const prev = meta.get(comp) ?? { duration: 0, value: 0 }
+  prev.duration = Number((prev.duration + duration).toFixed(0))
+
+  if (typeof value === "number") {
+    prev.value = (prev.value as number) + value
+  } else {
+    prev.value = value
+  }
+  meta.set(comp, prev)
+}
 
 export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
   const errors: number[] = []
   const comparisons: boolean[] = []
   let environmentFlag: boolean | null = null
-  let direct = false
   const integritychecks: (string | number)[] = []
-
-  const iframe = createSandboxedIframe()
-  if (!iframe) {
-    errors.push(0)
-  }
+  const componentMeta = new Map<CheckComponent, { duration: number; value: unknown }>()
 
   try {
     if (checkEnvironment()) {
       environmentFlag = true
-      direct = true
     }
   } catch {
     // no error push in original
   }
 
-  try {
-    if (iframe) {
-      integritychecks.push(...checkUserAgent(iframe, comparisons))
+  const iframe = createSandboxedIframe()
+  if (!iframe) { errors.push(0) }
+
+  for (const entry of DETECTOR_REGISTRY) {
+    try {
+      const args: unknown[] = []
+      if (entry.needsIframe) args.push(iframe)
+      if (entry.needsComparisons) args.push(comparisons)
+
+      const { duration, value: result } = measureDuration(() => entry.fn(...args)) as { duration: number; value: { value: unknown; codes: (string | number)[] } | null }
+      if (result) {
+        integritychecks.push(...result.codes)
+        addMeta(componentMeta, entry.component, duration, result.value)
+      }
+    } catch {
+      errors.push(entry.errorCode)
     }
-  } catch {
-    errors.push(10)
-  }
-
-  try {
-    integritychecks.push(...checkEssentialApis())
-  } catch {
-    errors.push(11)
-  }
-
-  try {
-    integritychecks.push(...checkNavigation())
-  } catch {
-    errors.push(20)
   }
 
   try {
@@ -73,102 +80,33 @@ export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
     errors.push(21)
   }
 
-  try {
-    try {
-      integritychecks.push(...checkDocumentIntegrity(iframe, comparisons))
-    } catch {
-      errors.push(30)
-    }
-
-    try {
-      integritychecks.push(...checkNavigatorIntegrity(iframe, comparisons))
-    } catch {
-      errors.push(31)
-    }
-
-    try {
-      integritychecks.push(...checkScreenIntegrity())
-    } catch {
-      errors.push(32)
-    }
-
-    try {
-      integritychecks.push(...checkDateIntegrity(iframe, comparisons))
-    } catch {
-      errors.push(33)
-    }
-
-    try {
-      integritychecks.push(...checkIframeElementIntegrity(iframe))
-    } catch {
-      errors.push(34)
-    }
-
-    try {
-      checkWebglIntegrity(iframe, comparisons, integritychecks)
-    } catch {
-      errors.push(35)
-    }
-
-    try {
-      checkCanvasPrototypes(integritychecks)
-    } catch {
-      errors.push(35)
-    }
-
-    try {
-      integritychecks.push(...checkCanvasFingerprint())
-    } catch {
-      errors.push(47)
-    }
-  } catch {
-    // outer integrity catch (empty in original)
-  }
-
-  try {
-    integritychecks.push(...checkAutomation(iframe))
-  } catch {
-    errors.push(40)
-  }
-
-  try {
-    integritychecks.push(...checkScreenHeuristics())
-  } catch {
-    errors.push(43)
-  }
-
-  try {
-    integritychecks.push(...checkBrowserFlags())
-  } catch {
-    errors.push(40)
-  }
-
-  const trueIdx = comparisons.indexOf(true)
-  if (trueIdx !== -1) {
-    integritychecks.push(Number("50." + (trueIdx + 1)))
+  const trueCount = comparisons.filter(Boolean).length
+  if (trueCount > 0) {
+    integritychecks.push(Number("50." + (comparisons.indexOf(true) + 1)))
+    addMeta(componentMeta, "iframe", 0, trueCount)
   }
 
   cleanupIframe(iframe)
 
   if (integritychecks.length === 0) {
-    integritychecks.push(...checkStorage())
+    const { duration, value: result } = measureDuration(() => checkStorage())
+    integritychecks.push(...result.codes)
+    addMeta(componentMeta, "storage", duration, result.value)
   }
 
-  const { checks, verdict, human, riskScore, riskLevel, confidence } = score(
+  const { verdict, risk, confidence, components } = score(
     integritychecks,
     comparisons,
     environmentFlag,
     errors,
+    componentMeta,
   )
 
   const result: AnalyzeResult = {
     verdict,
-    human,
-    direct,
-    riskScore,
-    riskLevel,
+    risk,
     confidence,
-    checks: mode === "public" ? buildPublicResponse(checks) : checks,
+    components,
   }
 
   if (mode === "debug") {

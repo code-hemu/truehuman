@@ -59,7 +59,7 @@ const sharedOutputOptions = {
 
 const plugins = [
   resolve(resolveOptions),
-  esbuild({...sharedEsbuildOptions, banner}),
+  esbuild({...sharedEsbuildOptions, banner, define: { __DEV__: "true" }}),
   removeComment()
 ]
 
@@ -106,7 +106,7 @@ export default [
     },
     plugins: [
       resolve(resolveOptions),
-      esbuild({ ...sharedEsbuildOptions, banner: short_banner, minify: true }),
+      esbuild({ ...sharedEsbuildOptions, banner: short_banner, minify: true, define: { __DEV__: "false" } }),
       removeComment()
     ],
     treeshake: { moduleSideEffects: false },

@@ -1,17 +1,21 @@
-import { lookupCode, type CheckCategory } from "../types/index.js"
-import type { CheckEvidence, CheckResult, CheckStatus } from "../types/index.js"
+declare var __DEV__: boolean
+
+import { lookupCode, lookupMessage, type CheckComponent, type CheckEvidence } from "../types/index.js"
 import { computeVerdict, type VerdictResult } from "./confidence.js"
 
-const ALL_CATEGORIES: CheckCategory[] = [
-  "automation",
-  "browser_integrity",
-  "iframe_integrity",
-  "fingerprinting",
-  "behavioral",
+const ALL_COMPONENTS: CheckComponent[] = [
+  "canvas",
+  "iframe",
+  "screen",
+  "webgl",
+  "webdriver",
+  "prototype",
+  "headless",
+  "storage",
 ]
 
 interface DecodedSignals {
-  evidence: Map<CheckCategory, CheckEvidence[]>
+  evidence: Map<CheckComponent, CheckEvidence[]>
   riskScore: number
 }
 
@@ -21,38 +25,38 @@ function decodeSignals(
   environmentFlag: boolean | null,
   errors: number[],
 ): DecodedSignals {
-  const evidence = new Map<CheckCategory, CheckEvidence[]>()
+  const evidence = new Map<CheckComponent, CheckEvidence[]>()
   let riskScore = 0
 
-  for (const category of ALL_CATEGORIES) {
-    evidence.set(category, [])
+  for (const component of ALL_COMPONENTS) {
+    evidence.set(component, [])
   }
 
   for (const code of integritychecks) {
     const entry = lookupCode(code)
     if (entry) {
-      evidence.get(entry.category)!.push({
+      evidence.get(entry.component)!.push({
         detector: entry.detector,
-        message: entry.message,
+        ...(__DEV__ ? { message: lookupMessage(code) ?? "" } : {}),
         code,
       })
-      riskScore += entry.riskDelta
+      riskScore += entry.risk
     }
   }
 
   if (errors.length > 0) {
-    evidence.get("browser_integrity")!.push({
+    evidence.get("headless")!.push({
       detector: "pipeline",
-      message: `${errors.length} runtime error(s) during analysis`,
+      ...(__DEV__ ? { message: `${errors.length} runtime error(s) during analysis` } : {}),
       code: errors[0],
     })
     riskScore += Math.min(errors.length * 8, 20)
   }
 
   if (environmentFlag === true) {
-    evidence.get("browser_integrity")!.push({
+    evidence.get("headless")!.push({
       detector: "environment",
-      message: "Direct file open detected",
+      ...(__DEV__ ? { message: "Direct file open detected" } : {}),
       code: 0,
     })
     riskScore += 30
@@ -60,17 +64,17 @@ function decodeSignals(
 
   const trueCount = comparisons.filter(Boolean).length
   if (trueCount > 0) {
-    evidence.get("iframe_integrity")!.push({
+    evidence.get("iframe")!.push({
       detector: "comparison",
-      message: `${trueCount} iframe comparison(s) returned different values`,
+      ...(__DEV__ ? { message: `${trueCount} iframe comparison(s) returned different values` } : {}),
       code: Number(`50.${comparisons.indexOf(true) + 1}`),
     })
     riskScore += Math.min(trueCount * 15, 30)
   }
 
-  const activeCategories = [...evidence.entries()].filter(([, v]) => v.length > 0)
-  if (activeCategories.length > 1) {
-    riskScore += (activeCategories.length - 1) * 5
+  const activeComponents = [...evidence.entries()].filter(([, v]) => v.length > 0)
+  if (activeComponents.length > 1) {
+    riskScore += (activeComponents.length - 1) * 5
   }
 
   riskScore = Math.min(riskScore, 100)
@@ -78,41 +82,14 @@ function decodeSignals(
   return { evidence, riskScore }
 }
 
-function buildDetailedChecks(evidence: Map<CheckCategory, CheckEvidence[]>): CheckResult[] {
-  const results: CheckResult[] = []
-  for (const category of ALL_CATEGORIES) {
-    const categoryEvidence = evidence.get(category)!
-    const totalRiskDelta = categoryEvidence.reduce((sum, e) => sum + (lookupCode(e.code)?.riskDelta ?? 0), 0)
-    const status: CheckStatus = categoryEvidence.length === 0 ? "pass" : totalRiskDelta > 30 ? "fail" : "suspicious"
-    results.push({
-      name: category,
-      status,
-      riskDelta: totalRiskDelta,
-      evidence: categoryEvidence,
-    })
-  }
-  return results
-}
-
-function buildMinimalChecks(checks: CheckResult[]): { passed: number; suspicious: number; failed: number } {
-  let passed = 0
-  let suspicious = 0
-  let failed = 0
-  for (const c of checks) {
-    if (c.status === "pass") passed++
-    else if (c.status === "fail") failed++
-    else suspicious++
-  }
-  return { passed, suspicious, failed }
-}
-
 export interface ScoreResult {
   verdict: "human" | "suspicious" | "bot"
-  human: boolean
-  riskScore: number
-  riskLevel: "low" | "medium" | "high" | "critical"
+  risk: {
+    score: number
+    level: "low" | "medium" | "high" | "critical"
+  }
   confidence: number
-  checks: CheckResult[]
+  components: Record<string, { duration: number; value: unknown }>
 }
 
 export function score(
@@ -120,18 +97,24 @@ export function score(
   comparisons: boolean[],
   environmentFlag: boolean | null,
   errors: number[],
+  componentMeta?: Map<CheckComponent, { duration: number; value: unknown }>,
 ): ScoreResult {
   const { evidence, riskScore } = decodeSignals(integritychecks, comparisons, environmentFlag, errors)
   const verdictInfo: VerdictResult = computeVerdict(riskScore)
-  const detailedChecks = buildDetailedChecks(evidence)
+
+  const components: Record<string, { duration: number; value: unknown }> = {}
+
+  for (const component of ALL_COMPONENTS) {
+    const meta = componentMeta?.get(component)
+    components[component] = {
+      duration: meta?.duration ?? 0,
+      value: meta?.value ?? 0,
+    }
+  }
 
   return {
     ...verdictInfo,
-    riskScore,
-    checks: detailedChecks,
+    risk: { score: riskScore, ...verdictInfo.risk },
+    components,
   }
-}
-
-export function buildPublicResponse(checks: CheckResult[]): { passed: number; suspicious: number; failed: number } {
-  return buildMinimalChecks(checks)
 }

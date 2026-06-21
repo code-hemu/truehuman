@@ -1,18 +1,16 @@
-export type CheckCategory = "automation" | "browser_integrity" | "iframe_integrity" | "fingerprinting" | "behavioral"
+export type CheckComponent = "canvas" | "iframe" | "screen" | "webgl" | "webdriver" | "prototype" | "headless" | "storage" 
 export type CheckStatus = "pass" | "suspicious" | "fail"
-export type AnalyzeMode = "public" | "detailed" | "debug"
+export type AnalyzeMode = "public" | "debug"
 
 export interface CheckEvidence {
   detector: string
-  message: string
+  message?: string
   code: number | string
 }
 
-export interface CheckResult {
-  name: CheckCategory
-  status: CheckStatus
-  riskDelta: number
-  evidence: CheckEvidence[]
+export interface ComponentEntry {
+  duration: number
+  value: any
 }
 
 export interface DebugInfo {
@@ -24,29 +22,28 @@ export interface DebugInfo {
 
 export interface AnalyzeResult {
   verdict: "human" | "suspicious" | "bot"
-  human: boolean
-  direct: boolean
-  riskScore: number
-  riskLevel: "low" | "medium" | "high" | "critical"
+  risk: {
+    score: number
+    level: "low" | "medium" | "high" | "critical"
+  }
   confidence: number
-  checks: CheckResult[] | { passed: number; suspicious: number; failed: number }
+  components: Partial<Record<CheckComponent, ComponentEntry>>
   debug?: DebugInfo
 }
 
 export interface RegistryEntry {
-  category: CheckCategory
+  component: CheckComponent
   detector: string
-  message: string
-  riskDelta: number
+  risk: number
 }
 
-const DOMAIN_DETECTORS: Record<number, { detector: string; category: CheckCategory; props: string[] }> = {
-  30: { detector: "document", category: "browser_integrity", props: ["hidden", "hasFocus"] },
-  31: { detector: "navigator", category: "browser_integrity", props: ["vendor", "platform", "languages", "webdriver", "permissions", "getUserMedia"] },
-  32: { detector: "screen", category: "browser_integrity", props: ["width", "height", "orientation"] },
-  33: { detector: "date", category: "browser_integrity", props: ["toString", "getTimezoneOffset"] },
-  34: { detector: "iframe-element", category: "iframe_integrity", props: ["src", "srcdoc"] },
-  35: { detector: "prototype", category: "fingerprinting", props: Array.from({ length: 15 }, (_, i) => `method#${i + 1}`) },
+const DOMAIN_DETECTORS: Record<number, { detector: string; component: CheckComponent; props: string[] }> = {
+  30: { detector: "document", component: "headless", props: ["hidden", "hasFocus"] },
+  31: { detector: "navigator", component: "headless", props: ["vendor", "platform", "languages", "webdriver", "permissions", "getUserMedia"] },
+  32: { detector: "screen", component: "screen", props: ["width", "height", "orientation"] },
+  33: { detector: "date", component: "headless", props: ["toString", "getTimezoneOffset"] },
+  34: { detector: "iframe-element", component: "iframe", props: ["src", "srcdoc"] },
+  35: { detector: "prototype", component: "prototype", props: Array.from({ length: 15 }, (_, i) => `method#${i + 1}`) },
 }
 
 const PREFIX_LABELS: Record<number, string> = {
@@ -64,47 +61,124 @@ const PREFIX_RISK: Record<number, number> = {
 }
 
 const EXACT: Record<string, RegistryEntry> = {
-  "10.1": { category: "browser_integrity", detector: "user-agent", message: "Android WebView UA pattern detected", riskDelta: 15 },
-  "10.2": { category: "browser_integrity", detector: "user-agent", message: "Headless browser UA pattern detected", riskDelta: 20 },
-  "10.3": { category: "browser_integrity", detector: "user-agent", message: "Chrome UA with Firefox CSS feature", riskDelta: 20 },
-  "10.4": { category: "browser_integrity", detector: "user-agent", message: "Firefox UA with Chrome CSS feature", riskDelta: 20 },
+  "10.1": { component: "headless", detector: "user-agent", risk: 15 },
+  "10.2": { component: "headless", detector: "user-agent", risk: 20 },
+  "10.3": { component: "headless", detector: "user-agent", risk: 20 },
+  "10.4": { component: "headless", detector: "user-agent", risk: 20 },
 
-  "11.1": { category: "browser_integrity", detector: "essential-apis", message: "Missing createElement API", riskDelta: 10 },
-  "11.2": { category: "browser_integrity", detector: "essential-apis", message: "Missing createEvent API", riskDelta: 10 },
-  "11.3": { category: "browser_integrity", detector: "essential-apis", message: "Missing dispatchEvent API", riskDelta: 10 },
-  "11.4": { category: "browser_integrity", detector: "essential-apis", message: "Missing getElementsByTagName API", riskDelta: 10 },
-  "11.5": { category: "browser_integrity", detector: "essential-apis", message: "Missing addEventListener API", riskDelta: 10 },
-  "11.6": { category: "browser_integrity", detector: "essential-apis", message: "Missing querySelector API", riskDelta: 10 },
-  "11.7": { category: "browser_integrity", detector: "essential-apis", message: "Missing getElementById API", riskDelta: 10 },
-  "11.8": { category: "browser_integrity", detector: "essential-apis", message: "Missing removeEventListener API", riskDelta: 10 },
-  "11.9": { category: "browser_integrity", detector: "essential-apis", message: "Missing document.body API", riskDelta: 10 },
+  "11.1": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.2": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.3": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.4": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.5": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.6": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.7": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.8": { component: "headless", detector: "essential-apis", risk: 10 },
+  "11.9": { component: "headless", detector: "essential-apis", risk: 10 },
 
-  "20.1": { category: "browser_integrity", detector: "navigation", message: "Performance navigation type 1 detected", riskDelta: 25 },
-  "20.2": { category: "browser_integrity", detector: "navigation", message: "Performance navigation type 2 detected", riskDelta: 25 },
+  "20.1": { component: "headless", detector: "navigation", risk: 25 },
+  "20.2": { component: "headless", detector: "navigation", risk: 25 },
 
-  "35.1": { category: "fingerprinting", detector: "prototype", message: "WebGL vendor is VMware (virtualized environment)", riskDelta: 30 },
+  "35.1": { component: "webgl", detector: "prototype", risk: 30 },
 
-  "41": { category: "automation", detector: "webdriver", message: "navigator.webdriver is enabled", riskDelta: 35 },
-  "42.1": { category: "automation", detector: "chrome-app", message: "chrome.app runtime detected", riskDelta: 5 },
-  "42.2": { category: "automation", detector: "postmessage", message: "postMessage-based Function.toString override detected", riskDelta: 40 },
-  "42.3": { category: "automation", detector: "function-tostring", message: "Function.prototype.toString override detected", riskDelta: 40 },
-  "42.4": { category: "automation", detector: "devtools", message: "DevTools tab count mismatch detected", riskDelta: 15 },
+  "41": { component: "webdriver", detector: "webdriver", risk: 35 },
+  "42.1": { component: "webdriver", detector: "chrome-app", risk: 5 },
+  "42.2": { component: "webdriver", detector: "postmessage", risk: 40 },
+  "42.3": { component: "webdriver", detector: "function-tostring", risk: 40 },
+  "42.4": { component: "webdriver", detector: "devtools", risk: 15 },
 
-  "43.2": { category: "automation", detector: "screen", message: "Window inner/outer/height dimensions are equal (headless)", riskDelta: 25 },
-  "43.4": { category: "automation", detector: "screen", message: "Unusually small screen size detected", riskDelta: 20 },
-  "43.5": { category: "automation", detector: "screen", message: "Screen dimensions invalid or missing orientation", riskDelta: 20 },
+  "43.2": { component: "screen", detector: "screen", risk: 25 },
+  "43.4": { component: "screen", detector: "screen", risk: 20 },
+  "43.5": { component: "screen", detector: "screen", risk: 20 },
 
-  "44.2": { category: "automation", detector: "browser-flags", message: "Non-Chrome browser inconsistency detected", riskDelta: 15 },
-  "44.3": { category: "automation", detector: "browser-flags", message: "Non-Chrome browser inconsistency detected", riskDelta: 15 },
-  "44.4": { category: "automation", detector: "browser-flags", message: "Fullscreen API enabled without fullscreen state", riskDelta: 10 },
-  "46": { category: "automation", detector: "browser-flags", message: "nods attribute present on document element", riskDelta: 20 },
+  "44.2": { component: "webdriver", detector: "browser-flags", risk: 15 },
+  "44.3": { component: "webdriver", detector: "browser-flags", risk: 15 },
+  "44.4": { component: "webdriver", detector: "browser-flags", risk: 10 },
+  "46": { component: "webdriver", detector: "browser-flags", risk: 20 },
 
-  "60.1": { category: "behavioral", detector: "storage", message: "Page reloaded more than 5 times", riskDelta: 5 },
-  "60.2": { category: "behavioral", detector: "storage", message: "localStorage is disabled or cleared", riskDelta: 3 },
-  "60.3": { category: "behavioral", detector: "storage", message: "localStorage access error occurred", riskDelta: 8 },
+  "60.1": { component: "storage", detector: "storage", risk: 5 },
+  "60.2": { component: "storage", detector: "storage", risk: 3 },
+  "60.3": { component: "storage", detector: "storage", risk: 8 },
 
-  "47.1": { category: "fingerprinting", detector: "canvas", message: "Canvas 2D context unavailable (blocked)", riskDelta: 25 },
-  "47.2": { category: "fingerprinting", detector: "canvas", message: "Canvas pixel data all zeros (noise injection)", riskDelta: 30 },
+  "47.1": { component: "canvas", detector: "canvas", risk: 25 },
+  "47.2": { component: "canvas", detector: "canvas", risk: 20 },
+  "47.3": { component: "canvas", detector: "canvas", risk: 30 }
+}
+
+const EXACT_MESSAGES: Record<string, string> = {
+  "10.1": "Android WebView UA pattern detected",
+  "10.2": "Headless browser UA pattern detected",
+  "10.3": "Chrome UA with Firefox CSS feature",
+  "10.4": "Firefox UA with Chrome CSS feature",
+
+  "11.1": "Missing createElement API",
+  "11.2": "Missing createEvent API",
+  "11.3": "Missing dispatchEvent API",
+  "11.4": "Missing getElementsByTagName API",
+  "11.5": "Missing addEventListener API",
+  "11.6": "Missing querySelector API",
+  "11.7": "Missing getElementById API",
+  "11.8": "Missing removeEventListener API",
+  "11.9": "Missing document.body API",
+
+  "20.1": "Performance navigation type 1 detected",
+  "20.2": "Performance navigation type 2 detected",
+
+  "35.1": "WebGL vendor is VMware (virtualized environment)",
+
+  "41": "navigator.webdriver is enabled",
+  "42.1": "chrome.app runtime detected",
+  "42.2": "postMessage-based Function.toString override detected",
+  "42.3": "Function.prototype.toString override detected",
+  "42.4": "DevTools tab count mismatch detected",
+
+  "43.2": "Window inner/outer/height dimensions are equal (headless)",
+  "43.4": "Unusually small screen size detected",
+  "43.5": "Screen dimensions invalid or missing orientation",
+
+  "44.2": "Non-Chrome browser inconsistency detected",
+  "44.3": "Non-Chrome browser inconsistency detected",
+  "44.4": "Fullscreen API enabled without fullscreen state",
+  "46": "nods attribute present on document element",
+
+  "60.1": "Page reloaded more than 5 times",
+  "60.2": "localStorage is disabled or cleared",
+  "60.3": "localStorage access error occurred",
+
+  "47.1": "Canvas 2D context unavailable (blocked)",
+  "47.2": "Canvas winding rule not supported",
+  "47.3": "Canvas pixel data all zeros (noise injection)",
+}
+
+export function lookupMessage(code: string | number): string | null {
+  const key = String(code)
+
+  const exact = EXACT_MESSAGES[key]
+  if (exact) return exact
+
+  const compMatch = key.match(/^50\.(\d+)$/)
+  if (compMatch) return `Iframe comparison #${compMatch[1]} failed`
+
+  const intMatch = key.match(/^(\d+)\.(\d+)\.(\d+)$/)
+  if (intMatch) {
+    const domain = parseInt(intMatch[1], 10)
+    const prefix = parseInt(intMatch[2], 10)
+    const idx = parseInt(intMatch[3], 10)
+    return matchIntegrityMessage(domain, prefix, idx)
+  }
+
+  return null
+}
+
+function matchIntegrityMessage(domain: number, prefix: number, idx: number): string | null {
+  const domainInfo = DOMAIN_DETECTORS[domain]
+  if (!domainInfo) return null
+
+  const propName = domainInfo.props[idx - 1] || `index#${idx}`
+  const label = PREFIX_LABELS[prefix]
+  if (!label) return null
+
+  return `${propName}: ${label}`
 }
 
 export function lookupCode(code: string | number): RegistryEntry | null {
@@ -116,10 +190,9 @@ export function lookupCode(code: string | number): RegistryEntry | null {
   const compMatch = key.match(/^50\.(\d+)$/)
   if (compMatch) {
     return {
-      category: "iframe_integrity",
+      component: "iframe",
       detector: "comparison",
-      message: `Iframe comparison #${compMatch[1]} failed`,
-      riskDelta: 15,
+      risk: 15,
     }
   }
 
@@ -145,9 +218,8 @@ function matchIntegrityCode(domain: number, prefix: number, idx: number): Regist
   if (!label) return null
 
   return {
-    category: domainInfo.category,
+    component: domainInfo.component,
     detector: domainInfo.detector,
-    message: `${propName}: ${label}`,
-    riskDelta: risk,
+    risk,
   }
 }

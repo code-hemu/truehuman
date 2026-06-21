@@ -1,43 +1,99 @@
-function getWebglVendor(doc: Document): string {
+type WebglInfo = {
+  vendor: string
+  renderer: string
+}
+
+function getWebglInfo(doc: Document): WebglInfo {
   try {
-    const c = doc.createElement("canvas")
-    if (!c) return ""
+    const canvas = doc.createElement("canvas")
+
     const gl: WebGLRenderingContext | null =
-      (c.getContext("webgl") as WebGLRenderingContext | null) ||
-      (c.getContext("experimental-webgl") as WebGLRenderingContext | null)
-    if (!gl) return ""
+      (canvas.getContext("webgl") as WebGLRenderingContext | null) ||
+      (canvas.getContext(
+        "experimental-webgl",
+      ) as WebGLRenderingContext | null)
+
+    if (!gl) {
+      return {
+        vendor: "",
+        renderer: "",
+      }
+    }
+
     const ext = gl.getExtension("WEBGL_debug_renderer_info")
-    if (!ext) return ""
-    const vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL)
-    if (vendor) return String(vendor)
-    return ""
+
+    if (!ext) {
+      return {
+        vendor: "",
+        renderer: "",
+      }
+    }
+
+    return {
+      vendor: String(
+        gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || "",
+      ),
+      renderer: String(
+        gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "",
+      ),
+    }
   } catch {
-    return ""
+    return {
+      vendor: "",
+      renderer: "",
+    }
   }
 }
 
 export function checkWebglIntegrity(
   iframe: HTMLIFrameElement | null,
   comparisons: boolean[],
-  codes: (string | number)[],
-): void {
+): {
+  value: WebglInfo
+  codes: (string | number)[]
+} {
+  const codes: (string | number)[] = []
+
+  const parentWebgl = getWebglInfo(document)
+
   if (
-    location.pathname.indexOf("fingerprint") !== -1 ||
-    location.pathname.indexOf("defender") !== -1
+    location.pathname.includes("fingerprint") ||
+    location.pathname.includes("defender")
   ) {
-    return
+    return {
+      value: parentWebgl,
+      codes,
+    }
   }
 
   if (iframe?.contentWindow) {
-    const parentVendor = getWebglVendor(document)
-    const iframeVendor = getWebglVendor(iframe.contentWindow.document)
-    comparisons.push(parentVendor !== iframeVendor)
+    try {
+      const iframeWebgl = getWebglInfo(
+        iframe.contentWindow.document,
+      )
 
-    if (
-      iframeVendor &&
-      iframeVendor.toLowerCase().indexOf("vmware") !== -1
-    ) {
-      codes.push(35.1)
+      comparisons.push(
+        parentWebgl.vendor !== iframeWebgl.vendor ||
+          parentWebgl.renderer !== iframeWebgl.renderer,
+      )
+
+      const vendor = iframeWebgl.vendor.toLowerCase()
+      const renderer = iframeWebgl.renderer.toLowerCase()
+
+      if (
+        vendor.includes("vmware") ||
+        renderer.includes("vmware") ||
+        renderer.includes("svga")
+      ) {
+        codes.push(35.1)
+      }
+    } catch {
+      // Cross-origin iframe access error
     }
+  }
+
+  return {
+    value: parentWebgl,
+    codes,
   }
 }

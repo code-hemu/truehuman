@@ -1,94 +1,68 @@
-function renderCanvasFingerprint(): { blocked: boolean; zeroSum: boolean; hash: string } | null {
+export function checkCanvasFingerprint(): {
+  codes: (string | number)[]
+  value: {
+    winding: boolean
+    geometry: string
+    text: string
+  }
+} | null {
+  const codes: (string | number)[] = []
+  let winding = false
+  let geometry = ""
+  let text = ""
+
   try {
     const c = document.createElement("canvas")
     c.width = 256
     c.height = 256
     const ctx = c.getContext("2d")
-    if (!ctx) return { blocked: true, zeroSum: false, hash: "" }
-
-    ctx.textBaseline = "top"
-    ctx.font = "14px Arial"
+    if (!ctx) {
+      codes.push(47.1)
+      return {
+        codes,
+        value: { winding: false, geometry: "", text: ""},
+      }
+    }
+    
     ctx.fillStyle = "#f60"
     ctx.fillRect(10, 10, 100, 50)
+
+    ctx.beginPath()
+    ctx.rect(50, 50, 100, 100)
     ctx.fillStyle = "#069"
-    ctx.fillText("Cwm fjordbank glyphs vext quiz, ", 2, 15)
+    ctx.fill()
 
-    const imageData = ctx.getImageData(0, 0, 256, 256)
-    const data = imageData.data
+    ctx.beginPath()
+    ctx.rect(50, 50, 100, 100)
+    const inFill = typeof (ctx as any).isPointInFill === "function" && (ctx as any).isPointInFill(100, 100)
+    const inPath = typeof ctx.isPointInPath === "function" && ctx.isPointInPath(100, 100)
+    winding = inFill || inPath
+    if (!winding) codes.push("47.2")
 
+    // Check for all-zero pixels (noise injection / canvas blocking)
+    const before = ctx.getImageData(0, 0, 256, 256)
     let sum = 0
-    for (let i = 0; i < data.length; i += 4) {
-      sum += data[i] + data[i + 1] + data[i + 2]
+    for (let i = 0; i < before.data.length; i += 4) {
+      sum += before.data[i] + before.data[i + 1] + before.data[i + 2]
     }
-    if (sum === 0) return { blocked: false, zeroSum: true, hash: "" }
+    if (sum === 0) codes.push("47.3")
 
-    let hash = 0x811c9dc5
-    for (let i = 0; i < Math.min(data.length, 4096); i += 4) {
-      hash ^= data[i]
-      hash = Math.imul(hash, 0x01000193)
-      hash ^= data[i + 1]
-      hash = Math.imul(hash, 0x01000193)
-    }
+    geometry = c.toDataURL()
 
-    return { blocked: false, zeroSum: false, hash: (hash >>> 0).toString(16) }
+    // Text pass
+    ctx.clearRect(0, 0, 256, 256)
+    ctx.textBaseline = "top"
+    ctx.font = "14px Arial"
+    ctx.fillStyle = "#000"
+    ctx.fillText("Cwm fjordbank glyphs vext quiz", 2, 15)
+    text = c.toDataURL()
+
   } catch {
-    return { blocked: true, zeroSum: false, hash: "" }
-  }
-}
-
-export function checkCanvasFingerprint(): (string | number)[] {
-  const codes: (string | number)[] = []
-  const result = renderCanvasFingerprint()
-  if (!result) return codes
-
-  if (result.blocked) {
     codes.push(47.1)
-  } else if (result.zeroSum) {
-    codes.push(47.2)
   }
-
-  return codes
-}
-
-export function checkCanvasPrototypes(
-  codes: (string | number)[],
-): void {
-  const methods: [object, string][] = [
-    [HTMLElement.prototype, "offsetWidth"],
-    [HTMLElement.prototype, "offsetHeight"],
-    [HTMLCanvasElement.prototype, "toBlob"],
-    [AudioBuffer.prototype, "getChannelData"],
-    [HTMLCanvasElement.prototype, "toDataURL"],
-    [BaseAudioContext.prototype, "createAnalyser"],
-    [WebGLRenderingContext.prototype, "getExtension"],
-    [WebGLRenderingContext.prototype, "getParameter"],
-    [CanvasRenderingContext2D.prototype, "getImageData"],
-    [WebGLRenderingContext.prototype, "getSupportedExtensions"],
-    [CanvasRenderingContext2D.prototype, "fillText"],
-    [CanvasRenderingContext2D.prototype, "strokeText"],
-    [CanvasRenderingContext2D.prototype, "drawImage"],
-    [Path2D.prototype, "addPath"],
-    [CanvasRenderingContext2D.prototype, "fillRect"],
-  ]
-
-  for (let i = 0; i < methods.length; i++) {
-    const desc = Object.getOwnPropertyDescriptor(methods[i][0], methods[i][1])
-    if (desc) {
-      if (desc.get && desc.get.toString()) {
-        if (desc.writable) {
-          codes.push("35.3." + (i + 1))
-        }
-        if (desc.get.toString().indexOf("[native code]") === -1) {
-          codes.push("35.4." + (i + 1))
-        }
-      }
-      if (
-        desc.value &&
-        desc.value.toString() &&
-        desc.value.toString().indexOf("[native code]") === -1
-      ) {
-        codes.push("35.5." + (i + 1))
-      }
-    }
+  
+  return {
+    codes,
+    value: { winding, geometry, text},
   }
 }

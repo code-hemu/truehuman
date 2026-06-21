@@ -9,10 +9,38 @@ export function checkEnvironment(): boolean {
   }
 }
 
+
+
+const NAV_API_CHECKS: (() => boolean)[] = [
+  () => window.close === undefined,
+  () => window.Notification === undefined,
+  () => window.devicePixelRatio === undefined,
+  () => document.documentElement === undefined,
+  () => window.screenLeft === undefined || window.screenTop === undefined,
+  () => window.matchMedia === undefined || typeof window.matchMedia !== "function",
+  () => window.external !== undefined && typeof window.external.toString !== "function",
+  () => navigator.permissions !== undefined && typeof navigator.permissions.query !== "function",
+  () => document.documentElement !== undefined && typeof document.documentElement.getAttributeNames !== "function",
+]
+
+export function checkEssentialApis(): { value: number; codes: (string | number)[] } {
+  const codes: (string | number)[] = []
+  for (let i = 0; i < NAV_API_CHECKS.length; i++) {
+    if (NAV_API_CHECKS[i]()) {
+      codes.push(Number("11." + (i + 1)))
+      return { value: codes.length, codes }
+    }
+  }
+  return { value: 0, codes }
+}
+
 export function checkUserAgent(
   iframe: HTMLIFrameElement | null,
   comparisons: boolean[],
-): (string | number)[] {
+): {
+  value: Record<string, unknown> | null
+  codes: (string | number)[]
+} {
   const codes: (string | number)[] = []
 
   if (/; wv/i.test(navigator.userAgent)) {
@@ -48,41 +76,20 @@ export function checkUserAgent(
     }
   }
 
-  return codes
+  return { value: null, codes }
 }
 
-const NAV_API_CHECKS: (() => boolean)[] = [
-  () => window.close === undefined,
-  () => window.Notification === undefined,
-  () => window.devicePixelRatio === undefined,
-  () => document.documentElement === undefined,
-  () => window.screenLeft === undefined || window.screenTop === undefined,
-  () => window.matchMedia === undefined || typeof window.matchMedia !== "function",
-  () => window.external !== undefined && typeof window.external.toString !== "function",
-  () => navigator.permissions !== undefined && typeof navigator.permissions.query !== "function",
-  () => document.documentElement !== undefined && typeof document.documentElement.getAttributeNames !== "function",
-]
-
-export function checkEssentialApis(): (string | number)[] {
-  for (let i = 0; i < NAV_API_CHECKS.length; i++) {
-    if (NAV_API_CHECKS[i]()) {
-      return [Number("11." + (i + 1))]
-    }
-  }
-  return []
-}
-
-export function checkNavigation(): (string | number)[] {
+export function checkNavigation(): { value: number; codes: (string | number)[] } {
   const codes: (string | number)[] = []
   const g = globalThis as Record<string, unknown>
   const hasChrome = typeof g.chrome !== "undefined"
 
   if (!hasChrome || localStorage.length !== 0 || !performance) {
-    return codes
+    return { value: 0, codes }
   }
 
   const entries = performance.getEntriesByType("navigation")
-  if (!entries || !entries.length) return codes
+  if (!entries || !entries.length) return { value: 0, codes }
 
   const entry = entries[0] as PerformanceNavigationTiming
   if (
@@ -107,13 +114,13 @@ export function checkNavigation(): (string | number)[] {
     }
   }
 
-  return codes
+  return { value: codes.length, codes }
 }
 
 export function checkDocumentIntegrity(
   iframe: HTMLIFrameElement | null,
   comparisons: boolean[],
-): (string | number)[] {
+): { value: number; codes: (string | number)[] } {
   const codes: (string | number)[] = []
 
   if (iframe?.contentWindow) {
@@ -146,13 +153,13 @@ export function checkDocumentIntegrity(
     }
   }
 
-  return codes
+  return { value: codes.length, codes }
 }
 
 export function checkNavigatorIntegrity(
   iframe: HTMLIFrameElement | null,
   comparisons: boolean[],
-): (string | number)[] {
+): { value: number; codes: (string | number)[] } {
   const codes: (string | number)[] = []
 
   if (iframe?.contentWindow) {
@@ -202,17 +209,17 @@ export function checkNavigatorIntegrity(
     }
   }
 
-  return codes
+  return { value: codes.length, codes }
 }
 
 export function checkDateIntegrity(
   iframe: HTMLIFrameElement | null,
   comparisons: boolean[],
-): (string | number)[] {
+): { value: number; codes: (string | number)[] } {
   const codes: (string | number)[] = []
 
   if (location.pathname.indexOf("timezone") !== -1) {
-    return codes
+    return { value: 0, codes }
   }
 
   if (iframe?.contentWindow) {
@@ -251,10 +258,10 @@ export function checkDateIntegrity(
     }
   }
 
-  return codes
+  return { value: codes.length, codes }
 }
 
-export function checkStorage(): (string | number)[] {
+export function checkStorage(): { value: number; codes: (string | number)[] } {
   const codes: (string | number)[] = []
 
   try {
@@ -281,5 +288,5 @@ export function checkStorage(): (string | number)[] {
     codes.push(60.3)
   }
 
-  return codes
+  return { value: codes.length, codes }
 }
