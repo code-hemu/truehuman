@@ -1,7 +1,7 @@
 <p align="center">
   <a href="https://github.com/code-hemu/truehuman">
     <picture>
-      <img src="resources/logo.png.png" alt="TrueHuman logo" width="312px" />
+      <img src="resources/logo.png" alt="TrueHuman logo" width="312px" />
     </picture>
   </a>
 </p>
