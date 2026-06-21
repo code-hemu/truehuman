@@ -1,9 +1,9 @@
 <p align="center">
   <a href="https://github.com/code-hemu/truehuman">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="resources/logo_light.svg" />
-      <source media="(prefers-color-scheme: light)" srcset="resources/logo_dark.svg" />
-      <img src="resources/logo_dark.svg" alt="FingerprintJS logo" width="312px" />
+      <source media="(prefers-color-scheme: dark)" srcset="resources/logo_light.png" />
+      <source media="(prefers-color-scheme: light)" srcset="resources/logo_dark.png" />
+      <img src="resources/logo_dark.png" alt="FingerprintJS logo" width="312px" />
     </picture>
   </a>
 </p>
