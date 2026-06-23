@@ -162,18 +162,7 @@ Integrity codes are short numeric identifiers assigned to specific signals that 
 | 10.x | User-Agent string inconsistencies, such as mismatches between the UA string and detected browser capabilities |
 | 11.x | Missing essential browser APIs that all real browsers expose but headless environments often omit |
 | 20.x | Navigation timing anomalies, including suspiciously fast page loads or missing timing entries |
-| 31.x to 35.x | Non-native property getters or prototype chain anomalies indicating that browser APIs have been patched or replaced |
-| 40.x to 46 | WebDriver flags, automation object properties, and devtools connection indicators left behind by Selenium, Puppeteer, and similar frameworks |
-| 43.x | Screen dimension heuristics, such as zero-size screens or dimensions that do not match any known device or viewport configuration |
-| 47.x | Canvas fingerprinting signals, including empty or identical canvas output across different rendering contexts |
-| 50.x | Cross-frame property mismatches detected by comparing values between the main frame and an injected iframe |
-| 60.x to 62.x | Storage availability checks, including missing or broken localStorage and sessionStorage |
-| 70.x to 71.x | Font enumeration results indicating an unusually small or suspiciously uniform set of installed fonts |
-| 80.x | Browser plugin enumeration, including empty plugin lists that real browsers never produce |
-| 81.x to 82.x | Color accessibility mode detection, including forced-colors and inverted display modes commonly seen in automation contexts |
-| 85.x | Audio context latency signals, including zero-latency or missing AudioContext implementations |
-| 90.x | reCAPTCHA v3 server-side verification failures or low-confidence scores returned by Google |
-| 91.x | Cloudflare Turnstile verification failures or challenge rejections |
+
 
 See [docs/error-codes.md](docs/error-codes.md) for the full code-by-code reference including individual weights and recommended response actions.
 
