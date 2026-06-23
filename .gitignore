@@ -1,17 +1,44 @@
-# Node.js modules
+# Dependencies
 node_modules/
-
-# Coverage
-coverage/
-
-# Husky generated scripts
-.husky/
 
 # Build output
 dist/
 
+# Coverage
+coverage/
+
+# Playwright output
+playwright-report/
+test-results/
+
+# Husky
+.husky/
+
 # Temporary/utility scripts
 scripts/
 
-index.js
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Stray files
 nul
+
+# Standalone copies / scratch
+index.js

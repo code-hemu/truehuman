@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-Browser Test Fixture</title>
+</head>
+<body>
+  <script src="/dist/truehuman.min.js"></script>
+  <script>
+    window.__crossBrowserResult = {}
+
+    try {
+      const warnings = []
+      const origWarn = console.warn
+      console.warn = (...args) => {
+        warnings.push(args.join(" "))
+        origWarn.apply(console, args)
+      }
+
+      const r = truehuman.analyze("debug")
+
+      window.__crossBrowserResult = {
+        ok: true,
+        visitor: r.visitor,
+        riskScore: r.risk.score,
+        riskLevel: r.risk.level,
+        confidence: r.confidence,
+        visitorId: r.visitorId,
+        referrer: r.referrer,
+        componentCount: Object.keys(r.components).length,
+        integrityCodes: r.debug?.integrityCodes ?? [],
+        errors: r.debug?.errors ?? [],
+        warnings,
+      }
+
+      console.log("CROSS-BROWSER RESULT:", JSON.stringify(window.__crossBrowserResult))
+    } catch (e) {
+      window.__crossBrowserResult = { ok: false, error: e.message, stack: e.stack }
+      console.error("CROSS-BROWSER ERROR:", e)
+    }
+  </script>
+</body>
+</html>

@@ -1,26 +1,31 @@
 .github/
 
+src/
 docs/
-test/
+tests/
 tools/
 node_modules/
 coverage/
 scripts/
+examples/
+resources/
+test-results/
+playwright-report/
 
 .gitignore
 .npmignore
 .gitattributes
 
-
 CHANGELOG.md
 CONTRIBUTING.md
 
 tsconfig.json
+vitest.config.ts
+vitest.unit.config.ts
 package-lock.json
 
 eslint.config.js
 rollup.config.js
-eslint.config.js
+playwright.config.ts
 
 index.js
-demo.js

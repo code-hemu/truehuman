@@ -1,3 +1,5 @@
+import { isGecko } from "../utils/browser.js"
+
 function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x))
 }
@@ -228,16 +230,99 @@ export function computeScreenNN(
   return computeNeuralScore(sw, sh, iw, ih, ow, oh, st, sl, hasChrome, maxTouchPoints, visibilityState, timezoneOffset, performanceNow)
 }
 
-export function checkScreenHeuristics(): { value: number; codes: (string | number)[] } {
+export function checkScreenIntegrity(): {
+  value: {
+    resolution: string
+    availResolution: string
+    orientation: string
+  }
+  codes: (string | number)[]
+} {
+  const codes: (string | number)[] = []
+
+  const props = ["width", "height", "orientation"]
+
+  for (let i = 0; i < props.length; i++) {
+    if (
+      Object.getOwnPropertyDescriptor(screen, props[i]) !==
+      undefined
+    ) {
+      codes.push("32.1." + (i + 1))
+    }
+
+    const desc = Object.getOwnPropertyDescriptor(
+      Screen.prototype,
+      props[i],
+    )
+
+    if (desc) {
+      if (desc.get && desc.get.toString()) {
+        if (desc.writable) {
+          codes.push("32.2." + (i + 1))
+        }
+
+        if (
+          desc.get
+            .toString()
+            .indexOf("[native code]") === -1
+        ) {
+          codes.push("32.3." + (i + 1))
+        }
+      }
+
+      if (
+        desc.value &&
+        desc.value.toString &&
+        desc.value
+          .toString()
+          .indexOf("[native code]") === -1
+      ) {
+        codes.push("32.4." + (i + 1))
+      }
+    }
+  }
+
+  return {
+    value: {
+      resolution: isGecko ? `${0}x${0}` : `${screen.width}x${screen.height}`,
+      availResolution: isGecko ? `${0}x${0}` : `${screen.availWidth}x${screen.availHeight}`,
+      orientation:
+        screen.orientation?.type ?? "unknown",
+    },
+    codes,
+  }
+}
+
+export function checkScreenHeuristics(): {
+  value: {
+    touchPoints: number
+    touchEvent: boolean
+    touchStart: boolean
+  }
+  codes: (string | number)[]
+} {
   const codes: (string | number)[] = []
 
   try {
-    if (window.matchMedia("(display-mode:fullscreen)").matches === false) {
-      const isChrome = typeof (globalThis as Record<string, unknown>).chrome !== "undefined"
-      const isWin = navigator.userAgent.indexOf("Win") !== -1
+    if (
+      window.matchMedia("(display-mode:fullscreen)").matches ===
+      false
+    ) {
+      const isChrome =
+        typeof (
+          globalThis as Record<string, unknown>
+        ).chrome !== "undefined"
+
+      const isWin =
+        navigator.userAgent.indexOf("Win") !== -1
+
       if (isChrome || isWin) {
-        const shEqualsIh = screen.height === window.innerHeight
-        const ihEqualsOh = window.innerHeight === window.outerHeight
+        const shEqualsIh =
+          screen.height === window.innerHeight
+
+        const ihEqualsOh =
+          window.innerHeight === window.outerHeight
+
         if (shEqualsIh && ihEqualsOh) {
           codes.push(43.2)
         }
@@ -258,14 +343,31 @@ export function checkScreenHeuristics(): { value: number; codes: (string | numbe
     // ignore
   }
 
+  let touchEvent: boolean
+  try {
+    document.createEvent('TouchEvent')
+    touchEvent = true
+  } catch {
+    touchEvent = false
+  }
+
+  const touchStart = 'ontouchstart' in window
+
   try {
     const checks: boolean[] = []
-    checks.push(screen.width === 0 || screen.height === 0)
+
     checks.push(
-      screen.orientation.type.match(/landscape/) !== null &&
+      screen.width === 0 || screen.height === 0,
+    )
+
+    checks.push(
+      screen.orientation.type.match(/landscape/) !==
+        null &&
         screen.width < screen.height,
     )
+
     const idx = checks.indexOf(true)
+
     if (idx !== -1) {
       codes.push("43.5." + (idx + 1))
     }
@@ -273,39 +375,12 @@ export function checkScreenHeuristics(): { value: number; codes: (string | numbe
     // ignore
   }
 
-  return { value: codes.length, codes }
-}
-
-export function checkScreenIntegrity(): { value: number; codes: (string | number)[] } {
-  const codes: (string | number)[] = []
-
-  const props = ["width", "height", "orientation"]
-  for (let i = 0; i < props.length; i++) {
-    if (
-      Object.getOwnPropertyDescriptor(screen, props[i]) !== undefined
-    ) {
-      codes.push("32.1." + (i + 1))
-    }
-
-    const desc = Object.getOwnPropertyDescriptor(Screen.prototype, props[i])
-    if (desc) {
-      if (desc.get && desc.get.toString()) {
-        if (desc.writable) {
-          codes.push("32.2." + (i + 1))
-        }
-        if (desc.get.toString().indexOf("[native code]") === -1) {
-          codes.push("32.3." + (i + 1))
-        }
-      }
-      if (
-        desc.value &&
-        desc.value.toString() &&
-        desc.value.toString().indexOf("[native code]") === -1
-      ) {
-        codes.push("32.4." + (i + 1))
-      }
-    }
+  return {
+    value: {
+      touchPoints: navigator.maxTouchPoints,
+      touchEvent,
+      touchStart,
+    },
+    codes,
   }
-
-  return { value: codes.length, codes }
 }

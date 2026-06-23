@@ -9,13 +9,7 @@
     body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 720px; margin: 0 auto; color: #1a1a2e; }
     h1 { font-size: 1.5rem; margin-bottom: .5rem; }
     p { color: #555; margin-bottom: 1.25rem; font-size: .875rem; }
-    .controls { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-    button, select { padding: .5rem 1rem; border-radius: 6px; border: 1px solid #ccc; font-size: .875rem; cursor: pointer; }
-    button { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
-    button:hover { opacity: .85; }
-    select { background: #fff; }
     #result { background: #f4f4f8; padding: 1.25rem; border-radius: 10px; font-size: .875rem; }
-    .loading { color: #666; }
     .verdict-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
     .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .875rem; font-weight: 700; }
     .badge-human { background: #dcfce7; color: #166534; }
@@ -25,13 +19,18 @@
     .stat strong { color: #1a1a2e; }
     .section { margin-top: .75rem; border-top: 1px solid #e0e0e8; padding-top: .75rem; }
     .section-title { font-weight: 600; margin-bottom: .5rem; font-size: .8125rem; text-transform: uppercase; letter-spacing: .03em; color: #666; }
-    .check-row { display: flex; align-items: center; gap: .5rem; padding: .25rem 0; }
-    .check-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .check-status-pass { background: #166534; }
-    .check-status-suspicious { background: #854d0e; }
-    .check-status-fail { background: #991b1b; }
     .evidence { margin-left: 1.25rem; padding: .25rem 0 .25rem .75rem; border-left: 2px solid #ddd; font-size: .8rem; color: #555; }
     .evidence code { background: #e8e8ee; padding: 1px 5px; border-radius: 3px; font-size: .775rem; }
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e0e0e8; }
+    table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+    thead { background: #eaeaef; }
+    th { font-weight: 600; color: #444; text-transform: uppercase; letter-spacing: .04em; font-size: .6875rem; padding: 10px 12px; text-align: left; }
+    td { padding: 8px 12px; border-top: 1px solid #e0e0e8; }
+    tbody tr { transition: background .15s; }
+    tbody tr:nth-child(even) { background: #f0f0f5; }
+    tbody tr:hover { background: #e4e4ef; }
+    .val-cell { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: .75rem; color: #444; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .duration-cell { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: .75rem; color: #666; text-align: right; white-space: nowrap; }
     details { margin-top: .5rem; }
     summary { cursor: pointer; font-weight: 600; color: #666; font-size: .8125rem; }
     pre { background: #1a1a2e; color: #f4f4f8; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .775rem; line-height: 1.5; tab-size: 2; }
@@ -39,39 +38,46 @@
 </head>
 <body>
   <h1>TrueHuman</h1>
-  <p>Client-side bot detection. All modes (public / detailed / debug) merged into one view.</p>
+  <p>Client-side bot detection. All modes (public / debug) merged into one view.</p>
 
-  <div class="controls">
-    <button id="analyzeBtn">Analyze</button>
-    <button id="toggleJson">Show JSON</button>
-  </div>
-
-  <div id="result" class="loading">Click <strong>Analyze</strong> to run detection.</div>
+  <div id="result"></div>
 
   <script src="../../dist/truehuman.min.js"></script>
   <script>
     const resultDiv = document.getElementById("result")
-    const analyzeBtn = document.getElementById("analyzeBtn")
-    const toggleBtn = document.getElementById("toggleJson")
-    let showJson = false
-    let lastResult = null
 
-    function renderVerdict(result) {
-      const cls = result.verdict === "human" ? "badge-human"
-        : result.verdict === "suspicious" ? "badge-suspicious"
+    function renderBadge(visitor) {
+      const cls = visitor === "human" ? "badge-human"
+        : visitor === "suspicious" ? "badge-suspicious"
         : "badge-bot"
-      return `<span class="badge ${cls}">${result.verdict.toUpperCase()}</span>`
+      return `<span class="badge ${cls}">${visitor.toUpperCase()}</span>`
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    }
+
+    function fmtVal(v) {
+      if (v === undefined || v === null) return "—"
+      if (typeof v === "boolean") return v
+      if (typeof v === "number") return v
+      if (typeof v === "string") return v
+      if (Array.isArray(v)) return `[${v.length} items]`
+      return JSON.stringify(v)
     }
 
     function renderComponentRow(name, entry) {
-      const val = typeof entry.value === "object"
-        ? `winding:${entry.value.winding} geo:${entry.value.geometry.length}ch text:${entry.value.text.length}ch`
-        : `val:${entry.value}`
-      return `<div class="check-row">
-        <span>${name}</span>
-        <span class="stat">${entry.duration.toFixed(2)}ms</span>
-        <span class="stat">${val}</span>
-      </div>`
+      const display = fmtVal(entry.value)
+      const full = typeof entry.value === "object" && entry.value !== null && !Array.isArray(entry.value)
+        ? Object.entries(entry.value).map(([k, val]) => `${k}: ${fmtVal(val)}`).join(" | ")
+        : typeof entry.value === "object"
+          ? JSON.stringify(entry.value)
+          : String(entry.value)
+      return `<tr>
+        <td><strong>${name}</strong></td>
+        <td class="duration-cell">${entry.duration.toFixed(2)}ms</td>
+        <td class="val-cell" title="${esc(full)}">${display}</td>
+      </tr>`
     }
 
     function renderDebug(debug) {
@@ -86,31 +92,24 @@
     }
 
     function render(result) {
-      lastResult = result
-      if (showJson) {
-        resultDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`
-        return
-      }
       const comps = Object.entries(result.components).map(([name, entry]) =>
         renderComponentRow(name, entry)
       ).join("")
       const html = `<div class="verdict-row">
-        ${renderVerdict(result)}
+        ${renderBadge(result.visitor)}
         <span class="stat">Score: <strong>${result.risk.score}</strong></span>
         <span class="stat">Level: <strong>${result.risk.level}</strong></span>
         <span class="stat">Confidence: <strong>${result.confidence}%</strong></span>
       </div>
       <div class="section">
-        <div class="section-title">Checks</div>
-        <div class="stat">
-          <strong>${result.checks.passed}</strong> passed &middot;
-          <strong>${result.checks.suspicious}</strong> suspicious &middot;
-          <strong>${result.checks.failed}</strong> failed
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Component</th><th>Duration</th><th>Value</th></tr>
+            </thead>
+            <tbody>${comps}</tbody>
+          </table>
         </div>
-      </div>
-      <div class="section">
-        <div class="section-title">Components</div>
-        ${comps}
       </div>
       <div class="section">
         <div class="section-title">Debug</div>
@@ -119,22 +118,25 @@
       resultDiv.innerHTML = html
     }
 
-    analyzeBtn.addEventListener("click", () => {
-      let result
+    (async () => {
       try {
-        result = truehuman.analyze("debug")
+        const result = await truehuman.analyze({
+          mode: "debug",
+          plugins: [
+            truehuman.detector.grecaptcha({
+              siteKey: "6LcQsGEsAAAAADvbrXRtZNHIH1ThzI5jBS_HhpyC",
+              action: "submit",
+              endpoint: "https://recaptcha-backend-one.vercel.app/api/verify?token=",
+              threshold: 0.7,
+            }),
+          ],
+          
+        })
+        render(result)
       } catch (e) {
         resultDiv.innerHTML = `<pre style="color:#991b1b">Error: ${e.message}</pre>`
-        return
       }
-      render(result)
-    })
-
-    toggleBtn.addEventListener("click", () => {
-      showJson = !showJson
-      toggleBtn.textContent = showJson ? "Show Rendered" : "Show JSON"
-      if (lastResult) render(lastResult)
-    })
+    })()
   </script>
 </body>
 </html>

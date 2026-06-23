@@ -1,3 +1,5 @@
+import { isGecko } from "../utils/browser.js"
+
 type WebglInfo = {
   vendor: string
   renderer: string
@@ -14,34 +16,30 @@ function getWebglInfo(doc: Document): WebglInfo {
       ) as WebGLRenderingContext | null)
 
     if (!gl) {
-      return {
-        vendor: "",
-        renderer: "",
-      }
+      return { vendor: "", renderer: "" }
     }
 
-    const ext = gl.getExtension("WEBGL_debug_renderer_info")
+    if (!isGecko) {
+      const ext = gl.getExtension("WEBGL_debug_renderer_info")
 
-    if (!ext) {
-      return {
-        vendor: "",
-        renderer: "",
+      if (ext) {
+        return {
+          vendor: String(
+            gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || "",
+          ),
+          renderer: String(
+            gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "",
+          ),
+        }
       }
     }
 
     return {
-      vendor: String(
-        gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || "",
-      ),
-      renderer: String(
-        gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "",
-      ),
+      vendor: String(gl.getParameter(gl.VENDOR) || ""),
+      renderer: String(gl.getParameter(gl.RENDERER) || ""),
     }
   } catch {
-    return {
-      vendor: "",
-      renderer: "",
-    }
+    return { vendor: "", renderer: "" }
   }
 }
 
@@ -77,9 +75,13 @@ export function checkWebglIntegrity(
           parentWebgl.renderer !== iframeWebgl.renderer,
       )
 
-      const vendor = iframeWebgl.vendor.toLowerCase()
-      const renderer = iframeWebgl.renderer.toLowerCase()
+      const vendor =
+        iframeWebgl.vendor.toLowerCase()
 
+      const renderer =
+        iframeWebgl.renderer.toLowerCase()
+
+      /** Common virtual-machine graphics adapters. */
       if (
         vendor.includes("vmware") ||
         renderer.includes("vmware") ||
@@ -88,7 +90,7 @@ export function checkWebglIntegrity(
         codes.push(35.1)
       }
     } catch {
-      // Cross-origin iframe access error
+      /** Cross-origin iframe access blocked. */
     }
   }
 

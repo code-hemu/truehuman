@@ -1,9 +1,12 @@
 export function checkPrototypes(): {
-  value: (string | number)[]
+  value: {
+    method: string
+    exists: boolean
+    native: boolean
+  }[]
   codes: (string | number)[]
 } {
   const codes: (string | number)[] = []
-  const value: (string | number)[] = []
 
   const methods: [object, string][] = [
     [HTMLElement.prototype, "offsetWidth"],
@@ -23,32 +26,44 @@ export function checkPrototypes(): {
     [CanvasRenderingContext2D.prototype, "fillRect"],
   ]
 
-  for (let i = 0; i < methods.length; i++) {
-    const desc = Object.getOwnPropertyDescriptor(
-      methods[i][0],
-      methods[i][1],
-    )
+  const value = methods.map(([obj, method], i) => {
+    const desc = Object.getOwnPropertyDescriptor(obj, method)
+
+    let native = false
+
     if (desc) {
-      value.push(methods[i][1]);
-      if (desc.get && desc.get.toString()) {
+      if (desc.get) {
+        native = desc.get
+          .toString()
+          .includes("[native code]")
+
         if (desc.writable) {
           codes.push("35.3." + (i + 1))
         }
 
-        if (desc.get.toString().indexOf("[native code]") === -1) {
+        if (!native) {
           codes.push("35.4." + (i + 1))
         }
-      }
+      } else if (desc.value?.toString) {
+        native = desc.value
+          .toString()
+          .includes("[native code]")
 
-      if (
-        desc.value &&
-        desc.value.toString &&
-        desc.value.toString().indexOf("[native code]") === -1
-      ) {
-        codes.push("35.5." + (i + 1))
+        if (!native) {
+          codes.push("35.5." + (i + 1))
+        }
       }
     }
-  }
 
-  return {value, codes}
+    return {
+      method,
+      exists: !!desc,
+      native,
+    }
+  })
+
+  return {
+    value,
+    codes,
+  }
 }

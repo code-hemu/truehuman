@@ -1,42 +1,73 @@
-export function checkIframeElementIntegrity(iframe: HTMLIFrameElement | null): {
-  value: (string | number)[]
+export function checkIframeElementIntegrity(
+  iframe: HTMLIFrameElement | null,
+): {
+  value: {
+    property: string
+    overridden: boolean
+    exists: boolean
+    native: boolean
+  }[]
   codes: (string | number)[]
 } {
   const codes: (string | number)[] = []
-  const value: (string | number)[] = []
 
   const props = ["src", "srcdoc"]
-  for (let i = 0; i < props.length; i++) {
-    if (iframe && Object.getOwnPropertyDescriptor(iframe, props[i]) !== undefined) {
+
+  const value = props.map((prop, i) => {
+    const ownDesc =
+      iframe !== null
+        ? Object.getOwnPropertyDescriptor(iframe, prop)
+        : undefined
+
+    if (ownDesc !== undefined) {
       codes.push("34.1." + (i + 1))
     }
 
-    const desc = Object.getOwnPropertyDescriptor(
+    const protoDesc = Object.getOwnPropertyDescriptor(
       HTMLIFrameElement.prototype,
-      props[i],
+      prop,
     )
-    if (desc) {
-      value.push(props[i]);
-      if (desc.get && desc.get.toString()) {
-        if (desc.writable) {
+
+    let native = false
+
+    if (protoDesc) {
+      if (protoDesc.get && protoDesc.get.toString()) {
+        native = protoDesc
+          .get
+          .toString()
+          .includes("[native code]")
+
+        if (protoDesc.writable) {
           codes.push("34.2." + (i + 1))
         }
-        if (desc.get.toString().indexOf("[native code]") === -1) {
+
+        if (!native) {
           codes.push("34.3." + (i + 1))
         }
       }
+
       if (
-        desc.value &&
-        desc.value.toString() &&
-        desc.value.toString().indexOf("[native code]") === -1
+        protoDesc.value &&
+        protoDesc.value.toString &&
+        !protoDesc.value
+          .toString()
+          .includes("[native code]")
       ) {
+        native = false
         codes.push("34.4." + (i + 1))
       }
     }
-  }
 
-  return { 
+    return {
+      property: prop,
+      overridden: ownDesc !== undefined,
+      exists: !!protoDesc,
+      native,
+    }
+  })
+
+  return {
+    value,
     codes,
-    value
   }
 }

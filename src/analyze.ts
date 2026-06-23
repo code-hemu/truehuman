@@ -1,10 +1,14 @@
-import type { AnalyzeMode } from "./types/index.js"
+import type { AnalyzeMode, AnalyzeOptions } from "./types/index.js"
 import type { AnalyzeResult, CheckComponent } from "./types/index.js"
-import { createSandboxedIframe, cleanupIframe, measureDuration } from "./utils/helpers.js"
-import { checkEnvironment, checkStorage } from "./detectors/headless.js"
+import { createSandboxedIframe, cleanupIframe } from "./utils/iframe.js"
+import { measureDuration } from "./utils/timing.js"
+import { checkEnvironment } from "./utils/referrer.js"
+import { checkStorage } from "./detectors/storage.js"
 import { computeScreenNN } from "./detectors/screen.js"
 import { DETECTOR_REGISTRY } from "./registry.js"
 import { score } from "./scoring/risk.js"
+import { getReferrer } from "./utils/referrer.js"
+import { djb2Hex } from "./utils/hash.js"
 
 function addMeta(
   meta: Map<CheckComponent, { duration: number; value: unknown }>,
@@ -23,7 +27,15 @@ function addMeta(
   meta.set(comp, prev)
 }
 
-export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
+interface SyncResult {
+  integritychecks: (string | number)[]
+  comparisons: boolean[]
+  environmentFlag: boolean | null
+  errors: number[]
+  componentMeta: Map<CheckComponent, { duration: number; value: unknown }>
+}
+
+function runFeathers(mode: AnalyzeMode): SyncResult {
   const errors: number[] = []
   const comparisons: boolean[] = []
   let environmentFlag: boolean | null = null
@@ -94,7 +106,16 @@ export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
     addMeta(componentMeta, "storage", duration, result.value)
   }
 
-  const { verdict, risk, confidence, components } = score(
+  return { integritychecks, comparisons, environmentFlag, errors, componentMeta }
+}
+
+function buildResult(
+  raw: SyncResult,
+  mode: AnalyzeMode,
+): AnalyzeResult {
+  const { integritychecks, comparisons, environmentFlag, errors, componentMeta } = raw
+
+  const { visitor, risk, confidence, components } = score(
     integritychecks,
     comparisons,
     environmentFlag,
@@ -102,8 +123,17 @@ export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
     componentMeta,
   )
 
+  const referrer = environmentFlag === true ? "file" : getReferrer()
+
   const result: AnalyzeResult = {
-    verdict,
+    visitorId: djb2Hex(
+      ["webgl", "canvas", "userAgent"]
+        .filter(k => components[k])
+        .map(k => `${k}:${JSON.stringify(components[k].value ?? "")}`)
+        .join("|")
+    ),
+    referrer,
+    visitor,
     risk,
     confidence,
     components,
@@ -119,4 +149,38 @@ export function analyze(mode: AnalyzeMode = "public"): AnalyzeResult {
   }
 
   return result
+}
+
+export function analyze(): AnalyzeResult
+export function analyze(mode: AnalyzeMode): AnalyzeResult
+export function analyze(options: AnalyzeOptions): Promise<AnalyzeResult>
+export function analyze(options?: AnalyzeMode | AnalyzeOptions): AnalyzeResult | Promise<AnalyzeResult> {
+  if (typeof options === "string" || options === undefined) {
+    const mode = options ?? "public"
+    return buildResult(runFeathers(mode), mode)
+  }
+
+  const mode = options.mode ?? "public"
+  const raw = runFeathers(mode)
+
+  if (!options.plugins || options.plugins.length === 0) {
+    return buildResult(raw, mode)
+  }
+
+  return (async () => {
+    const pluginContext = { integritychecks: raw.integritychecks, errors: raw.errors }
+    for (const plugin of options.plugins!) {
+      try {
+        const result = await plugin.fn(pluginContext)
+        if (!result) continue
+        if (result.codes) raw.integritychecks.push(...result.codes)
+        if (result.value !== undefined) {
+          addMeta(raw.componentMeta, plugin.name as CheckComponent, result.duration ?? 0, result.value)
+        }
+      } catch {
+        raw.integritychecks.push(90.2)
+      }
+    }
+    return buildResult(raw, mode)
+  })()
 }

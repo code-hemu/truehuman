@@ -1,5 +1,9 @@
+import { isGecko } from "../utils/browser.js"
+
 const g = globalThis as Record<string, unknown>
-const hasChrome = typeof g.chrome !== "undefined" && g.chrome !== null
+const hasChrome =
+  typeof g.chrome !== "undefined" &&
+  g.chrome !== null
 
 export function checkAutomation(
   iframe: HTMLIFrameElement | null,
@@ -7,8 +11,6 @@ export function checkAutomation(
   value: {
     automation: boolean
     inIframe: boolean
-    hasChrome: boolean
-    maxTouchPoints: number
   }
   codes: (string | number)[]
 } {
@@ -18,7 +20,7 @@ export function checkAutomation(
   const inIframe = window !== window.top
   const maxTouchPoints = navigator.maxTouchPoints
 
-  // Automation checks
+  /** Automation indicators exposed by the browser runtime. */
   if (inIframe) {
     codes.push(40)
   }
@@ -27,31 +29,48 @@ export function checkAutomation(
     codes.push(41)
   }
 
+  /** Chromium-specific integrity checks. */
   if (
     hasChrome &&
     (g.chrome as Record<string, unknown>).app !== undefined &&
     maxTouchPoints === 0
   ) {
-    const runtime = (g.chrome as Record<string, unknown>)
-      .runtime as Record<string, unknown> | undefined
+    const runtime =
+      (g.chrome as Record<string, unknown>)
+        .runtime as
+        | Record<string, unknown>
+        | undefined
 
     if (runtime?.connect) {
       try {
         postMessage(runtime.connect as string, "*")
       } catch (e: unknown) {
         const msg = (e as Error).message
+
         if (!msg.includes("[native code]")) {
           codes.push(42.1)
         }
       }
     }
 
+    /** Cross-frame native Function validation. */
     try {
-      const iw = iframe?.contentWindow as Record<string, unknown> | null
+      const iw =
+        iframe?.contentWindow as Record<
+          string,
+          unknown
+        > | null
 
       if (iw) {
-        const fnProto = (iw.Function as typeof Function).prototype
-        const fnStatic = iw.Function as unknown as Record<string, unknown>
+        const fnProto = (
+          iw.Function as typeof Function
+        ).prototype
+
+        const fnStatic =
+          iw.Function as unknown as Record<
+            string,
+            unknown
+          >
 
         const result = fnProto.toString.apply(
           fnStatic.toString as never,
@@ -63,6 +82,7 @@ export function checkAutomation(
       }
     } catch {}
 
+    /** Detect patched Function.prototype.toString implementations. */
     try {
       Object.getOwnPropertyDescriptor(
         Function.prototype,
@@ -86,14 +106,16 @@ export function checkAutomation(
       }
     }
 
-    const delta = window.outerHeight - window.innerHeight
+    /** Known Chromium automation window-size artifact. */
+    const delta =
+      window.outerHeight - window.innerHeight
 
     if (delta === 132 || delta === 133) {
       codes.push(42.4)
     }
   }
 
-  // Browser flags checks
+  /** Browser-state consistency heuristics. */
   if (!hasChrome) {
     if (navigator.webdriver === undefined) {
       codes.push(44.2)
@@ -107,11 +129,16 @@ export function checkAutomation(
     document.hasFocus() &&
     maxTouchPoints === 0 &&
     document.visibilityState === "visible" &&
-    window.matchMedia("(device-width:100vw)").matches &&
-    window.matchMedia("(device-height:100vh)").matches &&
-    !window.matchMedia("(display-mode:fullscreen)").matches
+    window.matchMedia("(device-width:100vw)")
+      .matches &&
+    window.matchMedia("(device-height:100vh)")
+      .matches &&
+    !window.matchMedia(
+      "(display-mode:fullscreen)",
+    ).matches
   ) {
     if (
+      !isGecko &&
       screen.width === screen.availWidth &&
       screen.height === screen.availHeight
     ) {
@@ -119,6 +146,7 @@ export function checkAutomation(
     }
   }
 
+  /** Development and debugging flag detection. */
   if (location.href.includes("nods=true")) {
     codes.push(46)
   }
@@ -127,8 +155,6 @@ export function checkAutomation(
     value: {
       automation,
       inIframe,
-      hasChrome,
-      maxTouchPoints,
     },
     codes,
   }

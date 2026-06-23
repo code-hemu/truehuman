@@ -27,6 +27,7 @@ function removeComment() {
   };
 }
 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8"),
@@ -42,6 +43,30 @@ const banner = `/*!
 * Date: ${new Date().toISOString().split('T')[0]}
 */`;
 
+function addBanner(text) {
+  return {
+    name: 'add-banner',
+
+    writeBundle(outputOptions, bundle) {
+      for (const fileName in bundle) {
+        if (!fileName.endsWith('.js')) continue;
+
+        const filePath = path.join(
+          outputOptions.dir || path.dirname(outputOptions.file),
+          fileName
+        );
+
+        const code = fs.readFileSync(filePath, 'utf8');
+
+        fs.writeFileSync(
+          filePath,
+          `${text}\n${code}`
+        );
+      }
+    },
+  };
+}
+
 const resolveOptions = {
   browser: true,
   extensions: [".mjs", ".js", ".ts", ".json"],
@@ -49,6 +74,7 @@ const resolveOptions = {
 
 const sharedEsbuildOptions = {
   target: "es2020",
+  // legalComments: "inline",
 }
 
 const sharedOutputOptions = {
@@ -59,8 +85,9 @@ const sharedOutputOptions = {
 
 const plugins = [
   resolve(resolveOptions),
-  esbuild({...sharedEsbuildOptions, banner, define: { __DEV__: "true" }}),
-  removeComment()
+  esbuild({...sharedEsbuildOptions, define: { __DEV__: "true" }}),
+  removeComment(),
+  addBanner(banner)
 ]
 
 export default [
@@ -106,8 +133,10 @@ export default [
     },
     plugins: [
       resolve(resolveOptions),
-      esbuild({ ...sharedEsbuildOptions, banner: short_banner, minify: true, define: { __DEV__: "false" } }),
-      removeComment()
+      esbuild({ ...sharedEsbuildOptions, minify: true, define: { __DEV__: "false" } }),
+      removeComment(),
+      addBanner(short_banner)
+
     ],
     treeshake: { moduleSideEffects: false },
   },

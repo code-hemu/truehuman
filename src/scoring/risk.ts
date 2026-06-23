@@ -1,17 +1,31 @@
 declare var __DEV__: boolean
 
-import { lookupCode, lookupMessage, type CheckComponent, type CheckEvidence } from "../types/index.js"
-import { computeVerdict, type VerdictResult } from "./confidence.js"
+import type { CheckComponent, CheckEvidence } from "../types/index.js"
+import { lookupCode } from "../lookup/codes.js"
+import { lookupMessage } from "../lookup/messages.js"
+import { computeVerdict, type VisitorResult } from "./confidence.js"
 
 const ALL_COMPONENTS: CheckComponent[] = [
+  "audioBaseLatency",
   "canvas",
+  "document",
+  "essentialApis",
+  "fonts",
+  "fontPreferences",
+  "forcedColors",
+  "plugins",
   "iframe",
+  "invertedColors",
   "screen",
+  "screenMeta",
   "webgl",
-  "webdriver",
+  "webDriver",
   "prototype",
-  "headless",
   "storage",
+  "userAgent",
+  "navigator",
+  "timezone",
+  "navigation"
 ]
 
 interface DecodedSignals {
@@ -45,20 +59,10 @@ function decodeSignals(
   }
 
   if (errors.length > 0) {
-    evidence.get("headless")!.push({
-      detector: "pipeline",
-      ...(__DEV__ ? { message: `${errors.length} runtime error(s) during analysis` } : {}),
-      code: errors[0],
-    })
     riskScore += Math.min(errors.length * 8, 20)
   }
 
   if (environmentFlag === true) {
-    evidence.get("headless")!.push({
-      detector: "environment",
-      ...(__DEV__ ? { message: "Direct file open detected" } : {}),
-      code: 0,
-    })
     riskScore += 30
   }
 
@@ -83,7 +87,7 @@ function decodeSignals(
 }
 
 export interface ScoreResult {
-  verdict: "human" | "suspicious" | "bot"
+  visitor: "human" | "suspicious" | "bot"
   risk: {
     score: number
     level: "low" | "medium" | "high" | "critical"
@@ -100,7 +104,7 @@ export function score(
   componentMeta?: Map<CheckComponent, { duration: number; value: unknown }>,
 ): ScoreResult {
   const { evidence, riskScore } = decodeSignals(integritychecks, comparisons, environmentFlag, errors)
-  const verdictInfo: VerdictResult = computeVerdict(riskScore)
+  const visitorInfo: VisitorResult = computeVerdict(riskScore)
 
   const components: Record<string, { duration: number; value: unknown }> = {}
 
@@ -112,9 +116,20 @@ export function score(
     }
   }
 
+  if (componentMeta) {
+    for (const [component, meta] of componentMeta) {
+      if (!components[component]) {
+        components[component] = {
+          duration: meta.duration,
+          value: meta.value,
+        }
+      }
+    }
+  }
+
   return {
-    ...verdictInfo,
-    risk: { score: riskScore, ...verdictInfo.risk },
+    ...visitorInfo,
+    risk: { score: riskScore, ...visitorInfo.risk },
     components,
   }
 }
