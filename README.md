@@ -15,6 +15,7 @@
 
 TrueHuman is a bot detection library for web applications. It performs browser integrity checks and uses passive fingerprinting signals to create a risk score. Optional reCAPTCHA and Turnstile plugins offer extra server-side verification.
 
+[![TrueHuman Screenshot](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)](https://github.com/code-hemu/truehuman)
 
 ## Features
 
