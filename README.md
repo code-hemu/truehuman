@@ -13,7 +13,7 @@
   <a href="https://www.jsdelivr.com/package/npm/truehuman"><img src="https://data.jsdelivr.com/v1/package/npm/truehuman/badge?style=rounded" alt="jsDelivr"></a>
 </p>
 
-TrueHuman is a lightweight, zero-dependency bot detection library for web applications. It runs more than 20 passive browser integrity checks entirely on the client side, building a risk profile from signals like canvas fingerprinting, WebGL renderer data, font enumeration, audio latency, screen dimensions, navigator properties, and automation flags. An optional plugin system extends detection with server-side verification via Google reCAPTCHA v3 or Cloudflare Turnstile. The result is a single numeric risk score plus a human-readable verdict that your application can act on immediately.
+TrueHuman is a bot detection library for web applications. It performs browser integrity checks and uses passive fingerprinting signals to create a risk score. Optional reCAPTCHA and Turnstile plugins offer extra server-side verification.
 
 
 ## Features
