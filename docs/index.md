@@ -62,7 +62,7 @@ The `truehuman` core has zero third-party runtime dependencies. The compiled bun
 ## Quick Links
 
 | Resource | Description |
-| | |
+| ---- | ----- |
 | [Getting Started](getting-started.md) | Installation, setup, and your first detection call |
 | [API Reference](api/analyze.md) | Full documentation for `analyze()` and all configuration options |
 | [Plugins](plugins/recaptcha.md) | How to configure reCAPTCHA v3 and Cloudflare Turnstile plugins |
