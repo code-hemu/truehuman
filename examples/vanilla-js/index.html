@@ -124,13 +124,12 @@
           mode: "debug",
           plugins: [
             truehuman.detector.grecaptcha({
-              siteKey: "....",
+              siteKey: "YOUR_SITE_KEY",
               action: "submit",
-              endpoint: "https://recaptcha-backend.com/api/verify?token=",
+              endpoint: "https://your-backend.com/api/verify",
               threshold: 0.7,
             }),
           ],
-          
         })
         render(result)
       } catch (e) {

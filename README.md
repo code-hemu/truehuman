@@ -1,7 +1,9 @@
 <p align="center">
   <a href="https://github.com/code-hemu/truehuman">
     <picture>
-      <img src="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/logo.png" alt="TrueHuman logo" width="312px" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/light_logo.png" />
+      <source media="(prefers-color-scheme: light)" srcset="resources/logo_dark.svg" />
+      <img src="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/dark_logo.png" alt="TrueHuman logo" width="312px" />
     </picture>
   </a>
 </p>
@@ -15,16 +17,11 @@
 
 TrueHuman is a bot detection library for web applications. It performs browser integrity checks and uses passive fingerprinting signals to create a risk score. Optional reCAPTCHA and Turnstile plugins offer extra server-side verification.
 
-[![TrueHuman Screenshot](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)
-
-## Features
-
-- **20+ passive detectors** - Inspects canvas output, WebGL metadata, installed fonts, audio context latency, screen geometry, navigator object properties, and known automation flags left behind by headless browsers and driver frameworks.
+- **20+ detectors** - Inspects canvas output, WebGL metadata, installed fonts, audio context latency, screen geometry, navigator object properties, and known automation flags left behind by headless browsers and driver frameworks.
 - **Plugin system** - Integrates with Google reCAPTCHA v3 and Cloudflare Turnstile to add server-validated signals on top of the passive client-side checks, giving you a layered defence that is much harder to spoof.
 - **Risk scoring** - Produces a cumulative 0 to 100 risk score alongside a verdict of `human`, `suspicious`, or `bot`, and a confidence value that is the direct inverse of the risk score.
 - **Zero runtime dependencies** - The entire library ships as roughly 10 KB when gzipped, with no third-party packages required at runtime. Optional plugin dependencies are loaded only when you configure a plugin.
 - **UMD / ESM / CJS** - Distributed in all three module formats so it works natively with any modern bundler, import system, or via a plain script tag from a CDN.
-
 
 ## Quick Start
 
@@ -59,6 +56,7 @@ If you are not using a bundler, load TrueHuman directly from jsDelivr and access
   console.log(result.visitor)
 </script>
 ```
+[![TrueHuman Screenshot](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)
 
 
 ### Sync vs Async
