@@ -56,8 +56,6 @@ If you are not using a bundler, load TrueHuman directly from jsDelivr and access
   console.log(result.visitor)
 </script>
 ```
-[![TrueHuman Screenshot](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)](https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/screenshot.png)
-
 
 ### Sync vs Async
 
