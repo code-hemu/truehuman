@@ -2,7 +2,7 @@
   <a href="https://github.com/code-hemu/truehuman">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/light_logo.png" />
-      <source media="(prefers-color-scheme: light)" srcset="resources/logo_dark.svg" />
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/dark_logo.png" />
       <img src="https://raw.githubusercontent.com/code-hemu/truehuman/refs/heads/main/resources/dark_logo.png" alt="TrueHuman logo" width="312px" />
     </picture>
   </a>
