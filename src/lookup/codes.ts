@@ -91,6 +91,9 @@ const EXACT: Record<string, RegistryEntry> = {
   "91.1": { component: "turnstile", detector: "turnstile-fail", risk: 25 },
   "91.2": { component: "turnstile", detector: "turnstile-api", risk: 0 },
 
+  "92.1": { component: "hardware", detector: "hardware-concurrency", risk: 15 },
+  "92.2": { component: "hardware", detector: "hardware-profile", risk: 10 },
+
 }
 
 function matchIntegrityCode(domain: number, prefix: number, idx: number): RegistryEntry | null {

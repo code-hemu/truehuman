@@ -14,6 +14,7 @@ const ALL_COMPONENTS: CheckComponent[] = [
   "fontPreferences",
   "forcedColors",
   "plugins",
+  "hardware",
   "iframe",
   "invertedColors",
   "screen",

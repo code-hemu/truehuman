@@ -6,6 +6,7 @@ export type {
   AnalyzeOptions,
   RecaptchaOptions,
   TurnstileOptions,
+  HardwareOptions,
   Plugin,
   PluginResult,
 } from "./types/index.js"

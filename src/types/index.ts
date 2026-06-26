@@ -1,4 +1,4 @@
-export type CheckComponent = "audioBaseLatency" | "canvas" | "document" | "essentialApis" | "fonts" | "fontPreferences" | "forcedColors" | "iframe" | "invertedColors" | "navigation" | "navigator" | "plugins" | "prototype" | "recaptcha" | "screen" | "screenMeta" | "storage" | "timezone" | "turnstile" | "userAgent" | "webDriver" | "webgl"
+export type CheckComponent = "audioBaseLatency" | "canvas" | "document" | "essentialApis" | "fonts" | "fontPreferences" | "forcedColors" | "hardware" | "iframe" | "invertedColors" | "navigation" | "navigator" | "plugins" | "prototype" | "recaptcha" | "screen" | "screenMeta" | "storage" | "timezone" | "turnstile" | "userAgent" | "webDriver" | "webgl"
 export type CheckStatus = "pass" | "suspicious" | "fail"
 export type AnalyzeMode = "public" | "debug"
 
@@ -71,6 +71,10 @@ export interface TurnstileOptions {
   endpoint: string
   referrer?: "direct" | "internal" | "external"
   appearance?: "always" | "execute" | "interaction-only"
+}
+
+export interface HardwareOptions {
+  referrer?: "direct" | "internal" | "external"
 }
 
 export interface AnalyzeOptions {

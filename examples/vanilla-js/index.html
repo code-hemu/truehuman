@@ -128,10 +128,13 @@
               action: "submit",
               endpoint: "https://your-backend.com/api/verify",
               threshold: 0.7,
-            }),
+            }), 
+            truehuman.detector.pow({ difficulty: 6 })
+
           ],
         })
         render(result)
+        console.log(result)
       } catch (e) {
         resultDiv.innerHTML = `<pre style="color:#991b1b">Error: ${e.message}</pre>`
       }

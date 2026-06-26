@@ -84,6 +84,9 @@ const EXACT_MESSAGES: Record<string, string> = {
   "91.1": "Turnstile verification failed",
   "91.2": "Turnstile API unavailable (infrastructure, not bot evidence)",
 
+  "92.1": "navigator.hardwareConcurrency is missing (stripped environment)",
+  "92.2": "Hardware profile matches VM pattern (2 cores, 8GB RAM)",
+
 }
 
 function matchIntegrityMessage(domain: number, prefix: number, idx: number): string | null {
