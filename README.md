@@ -10,9 +10,9 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/truehuman"><img src="https://img.shields.io/npm/v/truehuman" alt="Version"></a>
-  <a href="https://www.npmjs.com/package/truehuman"><img src="https://img.shields.io/npm/dt/truehuman" alt="Downloads"></a>
   <a href="https://github.com/code-hemu/truehuman/blob/master/LICENSE"><img src="https://img.shields.io/github/license/code-hemu/truehuman" alt="License"></a>
   <a href="https://www.jsdelivr.com/package/npm/truehuman"><img src="https://data.jsdelivr.com/v1/package/npm/truehuman/badge?style=rounded" alt="jsDelivr"></a>
+  <a href="https://github.com/code-hemu/exprify/graphs/contributors"><img src="https://img.shields.io/github/contributors/code-hemu/exprify" alt="jsDelivr"></a>
 </p>
 
 TrueHuman is a bot detection library for web applications. It performs browser integrity checks and uses passive fingerprinting signals to create a risk score. Optional reCAPTCHA and Turnstile plugins offer extra server-side verification.
