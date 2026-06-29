@@ -82,7 +82,7 @@ const EXACT: Record<string, RegistryEntry> = {
   "82.1": { component: "invertedColors", detector: "inverted-colors", risk: 5 },
 
   "85.1": { component: "audioBaseLatency", detector: "audio-base-latency", risk: 5 },
-  "85.2": { component: "audioBaseLatency", detector: "audio-base-latency", risk: 10 },
+  "85.2": { component: "audioBaseLatency", detector: "audio-base-latency", risk: 8 },
 
   "90.1": { component: "recaptcha", detector: "recaptcha-score", risk: 25 },
   "90.2": { component: "recaptcha", detector: "recaptcha-api", risk: 0 },
