@@ -3,59 +3,75 @@ const textSize = "48px"
 const baseFonts = ["monospace", "sans-serif", "serif"]
 
 const fontList = [
-  "sans-serif-thin",
-  "ARNO PRO",
-  "Agency FB",
-  "Arabic Typesetting",
+  // Windows
+  "Arial",
+  "Arial Black",
   "Arial Unicode MS",
-  "AvantGarde Bk BT",
-  "BankGothic Md BT",
-  "Batang",
-  "Bitstream Vera Sans Mono",
   "Calibri",
-  "Century",
-  "Century Gothic",
-  "Clarendon",
-  "EUROSTILE",
-  "Franklin Gothic",
-  "Futura Bk BT",
-  "Futura Md BT",
-  "GOTHAM",
-  "Gill Sans",
-  "HELV",
-  "Haettenschweiler",
+  "Cambria",
+  "Candara",
+  "Comic Sans MS",
+  "Consolas",
+  "Constantia",
+  "Corbel",
+  "Courier New",
+  "Georgia",
+  "Impact",
+  "Lucida Console",
+  "Lucida Sans Unicode",
+  "Microsoft Sans Serif",
+  "Segoe UI",
+  "Segoe UI Variable",
+  "Tahoma",
+  "Times New Roman",
+  "Trebuchet MS",
+  "Verdana",
+
+  // macOS
+  "Helvetica",
   "Helvetica Neue",
-  "Humanst521 BT",
-  "Leelawadee",
-  "Letter Gothic",
-  "Levenim MT",
-  "Lucida Bright",
-  "Lucida Sans",
   "Menlo",
-  "MS Mincho",
-  "MS Outlook",
-  "MS Reference Specialty",
-  "MS UI Gothic",
-  "MT Extra",
-  "MYRIAD PRO",
-  "Marlett",
+  "Monaco",
+  "Geneva",
+  "Avenir",
+  "Avenir Next",
+  "San Francisco",
+  "SF Pro Display",
+  "SF Pro Text",
+
+  // Linux
+  "DejaVu Sans",
+  "DejaVu Serif",
+  "DejaVu Sans Mono",
+  "Liberation Sans",
+  "Liberation Serif",
+  "Liberation Mono",
+  "Noto Sans",
+  "Noto Serif",
+  "Ubuntu",
+  "Ubuntu Mono",
+  "Cantarell",
+
+  // CJK
+  "Meiryo",
   "Meiryo UI",
-  "Microsoft Uighur",
-  "Minion Pro",
-  "Monotype Corsiva",
-  "PMingLiU",
-  "Pristina",
-  "SCRIPTINA",
-  "Segoe UI Light",
-  "Serifa",
+  "MS Gothic",
+  "MS PGothic",
+  "MS Mincho",
+  "Yu Gothic",
   "SimHei",
-  "Small Fonts",
-  "Staccato222 BT",
-  "TRAJAN PRO",
-  "Univers CE 55 Medium",
-  "Vrinda",
-  "ZWAdobeF",
-]
+  "SimSun",
+  "PMingLiU",
+  "Microsoft JhengHei",
+  "Malgun Gothic",
+
+  // Generic but useful
+  "Gill Sans",
+  "Optima",
+  "Palatino",
+  "Book Antiqua",
+  "Roboto",
+];
 
 export function checkFonts(): {
   value: { fonts: string[]; count: number }
@@ -175,7 +191,7 @@ export function checkFontPreferences(): {
 
   const codes: (string | number)[] = []
   const measurable = Object.values(sizes).filter((v) => v > 0).length
-  if (measurable < 3) {
+  if (measurable < 2) {
     codes.push(71.1)
   }
 

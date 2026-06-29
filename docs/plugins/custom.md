@@ -17,6 +17,8 @@ type PluginFn = (context?: PluginContext) => PluginResult | Promise<PluginResult
 interface PluginContext {
   integritychecks: (string | number)[]
   errors: number[]
+  visitor?: string
+  environmentFlag?: boolean
 }
 
 interface PluginResult {
@@ -39,6 +41,12 @@ An array of all detection codes emitted by the built-in feather detectors before
 
 **`PluginContext.errors`**
 An array of error codes produced by the built-in pass. Useful for detecting degraded environments before executing expensive custom checks.
+
+**`PluginContext.visitor`**
+The preliminary visitor classification (`"human"`, `"suspicious"`, or `"bot"`) computed from the built-in detectors before any plugins ran. Useful for deciding whether to skip expensive plugin checks when the visitor is already confidently classified.
+
+**`PluginContext.environmentFlag`**
+Whether the environment flag was triggered during the built-in pass. When `true`, it indicates the page may have been opened from the local filesystem or an unusual rendering context.
 
 **`PluginResult.codes`**
 An optional array of detection codes your plugin wants to contribute. These are appended to the session's integrity codes array and factored into the final score. Omit or return an empty array if your plugin gathered data but did not detect any suspicious signals.

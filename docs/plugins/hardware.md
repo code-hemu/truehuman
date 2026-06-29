@@ -17,12 +17,6 @@ console.log(result.components.hardware)
 // { hardwareConcurrency: 8, deviceMemory: 16, profile: "high-end" }
 ```
 
-## Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `referrer` | `string` | (none) | Restricts execution to a specific referrer category. Accepts `"direct"`, `"internal"`, or `"external"`. |
-
 ## Profile Classification
 
 The plugin classifies the hardware profile into one of four categories:

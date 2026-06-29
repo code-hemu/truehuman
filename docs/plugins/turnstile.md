@@ -27,14 +27,14 @@ The plugin operates entirely in the background without displaying any visible ch
 |--------|------|---------|-------------|
 | `siteKey` | `string` | (required) | Your Cloudflare Turnstile site key, obtained from the Cloudflare dashboard |
 | `endpoint` | `string` | (required) | The server-side URL that receives the token via POST and verifies it with Cloudflare |
-| `referrer` | `string` | (none) | Restricts execution to a specific referrer category. Accepts `"direct"`, `"internal"`, or `"external"`. When set, the plugin skips silently if the current visit does not match the specified category |
+| `saveTokens` | `boolean` | `false` | When `true`, skips Turnstile execution when the visitor is already classified as human with no environment flags |
 | `appearance` | `string` | `"interaction-only"` | Controls the Turnstile widget's visual appearance mode. Defaults to `"interaction-only"` so the widget remains invisible unless Cloudflare determines an interaction is necessary |
 
 ## Flow
 
 The plugin follows a strictly ordered sequence of steps when executed. If any step fails, the plugin reports an infrastructure error and does not contribute a bot signal to the risk score.
 
-1. **Referrer filter** - If a `referrer` value is configured, the plugin checks whether the current page visit matches the specified category. If it does not match, the plugin exits silently without running or affecting the result.
+1. **saveTokens check** - If `saveTokens` is enabled, the plugin checks whether the visitor is already classified as human with no environment flags. If so, the plugin exits without executing Turnstile.
 
 2. **Script injection** - The Cloudflare Turnstile JavaScript API is injected into the page using the `?render=explicit` query parameter, which prevents the widget from auto-rendering and gives the plugin full control over when rendering occurs.
 

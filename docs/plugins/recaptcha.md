@@ -29,50 +29,36 @@ const result = await analyze({
 | `endpoint` | `string` | (required) | The URL of your backend endpoint that will receive the token and perform server-side verification |
 | `action` | `string` | `"submit"` | A label identifying the context of the reCAPTCHA challenge; used for scoring differentiation in the Google dashboard |
 | `threshold` | `number` | `0.5` | The minimum acceptable score; sessions scoring below this value are flagged with risk code `90.1` |
-| `referrer` | `string` | (unset) | When set, restricts the plugin to run only when the page referrer matches the specified type: `"direct"`, `"internal"`, or `"external"` |
-| `saveTokens` | `boolean` | `false` | When `true`, skips reCAPTCHA execution entirely if the feathers layer has already emitted integrity codes for this session |
+| `saveTokens` | `boolean` | `false` | When `true`, skips reCAPTCHA execution when the visitor is already classified as human with no environment flags |
 
 ### `action`
 
 The `action` string is a free-form label you define to identify the interaction being protected, such as `"login"`, `"checkout"`, or `"contact_form"`. Google uses this value to group score statistics in the reCAPTCHA admin console, making it easier to monitor bot activity per interaction type. It does not affect scoring logic on TrueHuman's side.
 
-### `referrer`
-
-The `referrer` option provides a lightweight traffic-source filter. When set, the plugin inspects `document.referrer` and compares it against the specified type before executing:
-
-- `"direct"` matches sessions with no referrer, typically direct URL entry or bookmark access
-- `"internal"` matches referrers from the same origin as the current page
-- `"external"` matches referrers from a different origin
-
-If the referrer does not match the configured type, the plugin exits silently without injecting the reCAPTCHA script or issuing any error codes.
-
 ### `saveTokens`
 
-When `saveTokens` is enabled, the plugin checks whether TrueHuman's feathers detection layer has already emitted integrity-related codes before executing the reCAPTCHA challenge. If integrity codes are present, the plugin skips the reCAPTCHA request entirely. This avoids redundant network calls in sessions where bot evidence has already been collected through other signals, reducing latency and unnecessary third-party requests.
+When `saveTokens` is enabled, the plugin checks whether the visitor is already classified as human with no environment flags. If so, the plugin skips the reCAPTCHA challenge entirely. This avoids redundant network calls in sessions where the user is already confirmed as legitimate, reducing latency and unnecessary third-party requests.
 
 ## Execution Flow
 
 The plugin follows a deterministic sequence of steps each time `analyze()` is called with it included:
 
-**Step 1 - Referrer Filter**
-If a `referrer` value is configured, the plugin checks whether the current session's referrer matches the expected type. If it does not match, the plugin halts immediately and emits no codes, as though it was never invoked.
+**Step 1 - saveTokens Check**
+If `saveTokens` is `true`, the plugin checks whether the visitor is already classified as human with no environment flags. If so, the plugin exits without executing reCAPTCHA.
 
-**Step 2 - saveTokens Check**
-If `saveTokens` is `true`, the plugin inspects the feathers layer output. If any integrity codes have already been emitted in this session, the plugin exits without executing reCAPTCHA, treating the session as already evaluated.
-
-**Step 3 - Script Injection**
+**Step 2 - Script Injection**
 The reCAPTCHA v3 API script is injected into the page as a `<script>` tag with the `?render={siteKey}` query parameter, which initializes the library in explicit rendering mode.
 
-**Step 4 - grecaptcha.ready()**
+**Step 3 - grecaptcha.ready()**
 The plugin waits for the `grecaptcha.ready()` callback to fire, confirming that the reCAPTCHA API has fully loaded and is ready to accept execution calls.
 
-**Step 5 - Token Execution**
+**Step 4 - Token Execution**
 The plugin calls `grecaptcha.execute(siteKey, { action })` to request a signed challenge token. This token encodes the session's behavioral signals as assessed by Google's infrastructure.
 
-**Step 6 - POST to Endpoint**
+**Step 5 - POST to Endpoint**
 The token and action label are sent to your configured `endpoint` as a JSON POST request with the body `{ token, action }`. Your server is expected to forward the token to Google's `siteverify` API and return a structured response.
 
-**Step 7 - Response Interpretation**
+**Step 6 - Response Interpretation**
 The plugin parses the response returned by your endpoint and maps the outcome to TrueHuman error codes based on the score, success flag, and any failure conditions encountered during the above steps.
 
 ## Expected Endpoint Response

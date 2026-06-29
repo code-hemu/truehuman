@@ -110,7 +110,7 @@ export function checkAutomation(
     const delta =
       window.outerHeight - window.innerHeight
 
-    if (delta === 132 || delta === 133) {
+    if (delta >= 180) {
       codes.push(42.4)
     }
   }

@@ -129,7 +129,7 @@ This group covers direct webdriver detection, extension signals, `Function.toStr
 | 42.1 | chrome-app | 5 | `chrome.runtime` is present - indicates a Chrome extension may be active |
 | 42.2 | postmessage | 40 | `Function.toString` has been overridden via a postMessage-based injection mechanism |
 | 42.3 | function-tostring | 40 | `Function.prototype.toString` has been directly replaced with a non-native implementation |
-| 42.4 | devtools | 15 | The number of open DevTools tabs does not match what the environment reports |
+| 42.4 | devtools | 5 | The number of open DevTools tabs does not match what the environment reports |
 | 44.2 | browser-flags | 15 | Browser inconsistency detected that is not consistent with Chrome's expected flag set |
 | 44.3 | browser-flags | 15 | Secondary non-Chrome browser flag inconsistency detected |
 | 44.4 | browser-flags | 10 | The Fullscreen API is present but the environment reports no fullscreen state is active |

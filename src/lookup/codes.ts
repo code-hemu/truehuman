@@ -48,7 +48,7 @@ const EXACT: Record<string, RegistryEntry> = {
   "42.1": { component: "webDriver", detector: "chrome-app", risk: 5 },
   "42.2": { component: "webDriver", detector: "postmessage", risk: 40 },
   "42.3": { component: "webDriver", detector: "function-tostring", risk: 40 },
-  "42.4": { component: "webDriver", detector: "devtools", risk: 15 },
+  "42.4": { component: "webDriver", detector: "devtools", risk: 5 },
 
   "43.2": { component: "screen", detector: "screen", risk: 25 },
   "43.4": { component: "screen", detector: "screen", risk: 20 },
@@ -71,7 +71,7 @@ const EXACT: Record<string, RegistryEntry> = {
   "47.3": { component: "canvas", detector: "canvas", risk: 30 },
 
   "70.1": { component: "fonts", detector: "fonts", risk: 5 },
-  "70.2": { component: "fonts", detector: "fonts", risk: 20 },
+  "70.2": { component: "fonts", detector: "fonts", risk: 10 },
 
   "71.1": { component: "fontPreferences", detector: "font-preferences", risk: 15 },
 

@@ -17,23 +17,13 @@ riskScore = sum(code.risk for each code)
           + iframeComparisonPenalty (min(trueCount * 15, 30))
           + errorPenalty (min(errorCount * 8, 20))
           + crossComponentPenalty ((activeComponents - 1) * 5)
-          + environmentFlag (30 if set)
+
 
 riskScore = min(riskScore, 100)
 ```
 
 
 Each term in this formula is independently calculated and then summed before the final cap is applied. This means that multiple moderate signals can combine to push a session into a high-risk verdict even if no single signal is conclusive on its own.
-
-### Environment Flag
-
-The environment flag is a binary signal that, when triggered, adds a flat **30 points** to the risk score. It is designed to catch sessions running in non-standard or controlled environments that are strongly associated with automated testing or scraping setups.
-
-The flag is activated when **either** of the following conditions is detected:
-
-- **File protocol access:** The page is opened directly from the local filesystem via the `file://` protocol. This is identified by the combination of no HTTP referrer, a URL path ending in `.html`, and an empty query string. Legitimate end users almost never load production pages this way.
-- **Neural network screen score above 0.3:** An internal neural network model analyzes low-level screen and rendering characteristics and returns a probability score. If that score exceeds the 0.3 threshold, it indicates the rendering environment does not match typical human browser behavior.
-
 
 ## Verdict Thresholds
 

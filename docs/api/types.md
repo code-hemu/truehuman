@@ -94,7 +94,6 @@ interface RecaptchaOptions {
   action?: string
   endpoint: string
   threshold?: number
-  referrer?: "direct" | "internal" | "external"
   saveTokens?: boolean
 }
 ```
@@ -109,9 +108,7 @@ interface RecaptchaOptions {
 
 **`threshold`** - An optional score threshold between `0.0` and `1.0`. If the score returned by reCAPTCHA falls below this value, the visitor is treated as suspicious or non-human. Defaults to Google's recommended value if omitted.
 
-**`referrer`** - Restricts reCAPTCHA verification to visitors matching the specified referral type. Useful for only challenging visitors arriving from external sources, for example.
-
-**`saveTokens`** - When set to `true`, reCAPTCHA tokens are cached and reused where possible to reduce unnecessary verification requests. Defaults to `false`.
+**`saveTokens`** - When set to `true`, skips reCAPTCHA execution when the visitor is already classified as human with no environment flags. Defaults to `false`.
 
 
 ## `TurnstileOptions`
@@ -122,8 +119,8 @@ Configuration for enabling Cloudflare Turnstile as a supplementary verification 
 interface TurnstileOptions {
   siteKey: string
   endpoint: string
-  referrer?: "direct" | "internal" | "external"
   appearance?: "always" | "execute" | "interaction-only"
+  saveTokens?: boolean
 }
 ```
 
@@ -133,7 +130,7 @@ interface TurnstileOptions {
 
 **`endpoint`** - The URL of your server-side endpoint responsible for verifying the Turnstile token using the Cloudflare siteverify API.
 
-**`referrer`** - Optionally limits Turnstile verification to visitors matching a specific referral source, functioning the same way as the equivalent field on `RecaptchaOptions`.
+**`saveTokens`** - When set to `true`, skips Turnstile execution when the visitor is already classified as human with no environment flags. Defaults to `false`.
 
 **`appearance`** - Controls how and when the Turnstile widget is rendered and interacted with:
 
@@ -157,6 +154,8 @@ type PluginFn = (context?: PluginContext) => PluginResult | Promise<PluginResult
 interface PluginContext {
   integritychecks: (string | number)[]
   errors: number[]
+  visitor?: string
+  environmentFlag?: boolean
 }
 
 interface PluginResult {

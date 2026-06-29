@@ -21,8 +21,7 @@ detector.grecaptcha({
   action?: string                         // default "submit"
   endpoint: string                        // POSTs { token, action } here
   threshold?: number                      // default 0.5
-  referrer?: "direct" | "internal" | "external"
-  saveTokens?: boolean                    // default false - skip if feathers flagged
+  saveTokens?: boolean                    // default false - skip if human with no env flags
 }): Plugin
 ```
 
@@ -34,8 +33,7 @@ detector.grecaptcha({
 | `action` | `string` | No | A label identifying the action being protected. Used in Google's reporting dashboard. Defaults to `"submit"`. |
 | `endpoint` | `string` | Yes | The URL on your server that receives a `POST` request containing `{ token, action }` and verifies it against the Google reCAPTCHA API. |
 | `threshold` | `number` | No | Minimum reCAPTCHA score required to pass. Scores below this value are treated as bot-like. Defaults to `0.5`. |
-| `referrer` | `"direct" \| "internal" \| "external"` | No | Indicates the traffic source of the current visitor. Can be used server-side to adjust scoring logic. |
-| `saveTokens` | `boolean` | No | When set to `true`, reCAPTCHA tokens are retained even if earlier analysis signals (feathers) have already flagged the visitor as suspicious. Defaults to `false`, which skips token generation in that case to avoid unnecessary API usage. |
+| `saveTokens` | `boolean` | No | When set to `true`, skips reCAPTCHA execution when the visitor is already classified as human with no environment flags. Defaults to `false`. |
 
 For a complete implementation guide including server-side verification setup, see [reCAPTCHA Plugin](../plugins/recaptcha.md).
 
@@ -50,7 +48,7 @@ When this plugin is active, it injects the Turnstile script, renders the widget 
 detector.turnstile({
   siteKey: string
   endpoint: string                        // POSTs { token } here
-  referrer?: "direct" | "internal" | "external"
+  saveTokens?: boolean                    // default false - skip if human with no env flags
   appearance?: "always" | "execute" | "interaction-only"  // default "interaction-only"
 }): Plugin
 ```
@@ -61,7 +59,7 @@ detector.turnstile({
 |---|---|---|---|
 | `siteKey` | `string` | Yes | Your Cloudflare Turnstile site key, obtained from the Cloudflare dashboard. |
 | `endpoint` | `string` | Yes | The URL on your server that receives a `POST` request containing `{ token }` and verifies it with the Cloudflare siteverify API. |
-| `referrer` | `"direct" \| "internal" \| "external"` | No | Indicates the traffic source of the current visitor, which can be passed to your server for context-aware verification logic. |
+| `saveTokens` | `boolean` | No | When set to `true`, skips Turnstile execution when the visitor is already classified as human with no environment flags. Defaults to `false`. |
 | `appearance` | `"always" \| "execute" \| "interaction-only"` | No | Controls when and how the Turnstile widget is rendered. `"always"` renders the widget visibly at all times. `"execute"` renders it only when `.execute()` is called programmatically. `"interaction-only"` shows the widget only when Cloudflare determines that an interactive challenge is required. Defaults to `"interaction-only"`. |
 
 For a complete implementation guide including server-side verification setup, see [Turnstile Plugin](../plugins/turnstile.md).
