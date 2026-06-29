@@ -1,6 +1,6 @@
 {
   "name": "truehuman",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Human verification, and anti-bot detection library for web applications.",
   "homepage": "https://github.com/code-hemu/truehuman#readme",
   "bugs": {

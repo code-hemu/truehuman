@@ -210,8 +210,10 @@ The Web Audio API provides an `AudioContext.baseLatency` value that is influence
 
 | Code | Detector | Risk | Description |
 |------|----------|------|-------------|
-| 85.1 | audio-base-latency | 5 | `AudioContext` could not be created - the Web Audio API is unavailable in this environment |
-| 85.2 | audio-base-latency | 10 | `AudioContext.baseLatency` is `null`, `undefined`, or a non-finite value such as `NaN` |
+| 85.1 | audio-base-latency | 2 | `AudioContext` could not be created - the Web Audio API is unavailable in this environment |
+| 85.2 | audio-base-latency | 4 | `AudioContext.baseLatency` is `null`, `undefined`, or a non-finite value such as `NaN` |
+| 85.3 | audio-base-latency | 5 | `new AudioContext()` constructor threw an exception |
+| 85.4 | audio-base-latency | 2 | `AudioContext.baseLatency` value is ≤ 0 or > 1, indicating an unusual audio environment |
 
 ### reCAPTCHA (90.x)
 
