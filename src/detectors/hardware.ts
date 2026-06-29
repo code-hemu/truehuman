@@ -9,8 +9,6 @@ function classifyProfile(cores: number, memory: number | null): string {
 }
 
 export function hardwarePlugin(options: HardwareOptions = {}): Plugin {
-  const { referrer: referrerFilter } = options
-
   return {
     name: "hardware",
 
@@ -18,13 +16,6 @@ export function hardwarePlugin(options: HardwareOptions = {}): Plugin {
       const currentReferrer = getReferrer()
 
       if (currentReferrer === "file" || currentReferrer === "localhost") {
-        return {
-          value: { skipped: true },
-          codes: [],
-        }
-      }
-
-      if (referrerFilter && currentReferrer !== referrerFilter) {
         return {
           value: { skipped: true },
           codes: [],

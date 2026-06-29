@@ -63,10 +63,6 @@ function decodeSignals(
     riskScore += Math.min(errors.length * 8, 20)
   }
 
-  if (environmentFlag === true) {
-    riskScore += 30
-  }
-
   const trueCount = comparisons.filter(Boolean).length
   if (trueCount > 0) {
     evidence.get("iframe")!.push({

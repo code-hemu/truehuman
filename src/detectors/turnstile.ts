@@ -32,8 +32,8 @@ export function turnstilePlugin(options: TurnstileOptions): Plugin {
   const {
     siteKey,
     endpoint,
-    referrer: referrerFilter,
     appearance = "interaction-only",
+    saveTokens = false,
   } = options
 
   return {
@@ -49,7 +49,7 @@ export function turnstilePlugin(options: TurnstileOptions): Plugin {
         }
       }
 
-      if (referrerFilter && currentReferrer !== referrerFilter) {
+      if (saveTokens && context?.visitor === "human" && !context.environmentFlag) {
         return {
           value: { success: false, skipped: true },
           codes: [],

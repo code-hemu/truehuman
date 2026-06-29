@@ -168,7 +168,8 @@ export function analyze(options?: AnalyzeMode | AnalyzeOptions): AnalyzeResult |
   }
 
   return (async () => {
-    const pluginContext = { integritychecks: raw.integritychecks, errors: raw.errors }
+    const { visitor } = score(raw.integritychecks, raw.comparisons, raw.environmentFlag, raw.errors, raw.componentMeta)
+    const pluginContext = { integritychecks: raw.integritychecks, errors: raw.errors, visitor, environmentFlag: raw.environmentFlag ?? false }
     for (const plugin of options.plugins!) {
       try {
         const result = await plugin.fn(pluginContext)

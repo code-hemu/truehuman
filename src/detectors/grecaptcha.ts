@@ -44,7 +44,6 @@ export function recaptchaPlugin(
     action = "submit",
     endpoint,
     threshold = 0.5,
-    referrer: referrerFilter,
     saveTokens = false,
   } = options
 
@@ -61,14 +60,7 @@ export function recaptchaPlugin(
         }
       }
 
-      if (referrerFilter && currentReferrer !== referrerFilter) {
-        return {
-          value: { score: 0, success: false, skipped: true },
-          codes: [],
-        }
-      }
-
-      if (saveTokens && context?.integritychecks && context.integritychecks.length > 0) {
+      if (saveTokens && context?.visitor === "human" && !context.environmentFlag) {
         return {
           value: { score: 0, success: false, skipped: true, reason: "feathers_flagged" },
           codes: [],

@@ -48,6 +48,8 @@ export interface PluginResult {
 export interface PluginContext {
   integritychecks: (string | number)[]
   errors: number[]
+  visitor?: string
+  environmentFlag?: boolean
 }
 
 export type PluginFn = (context?: PluginContext) => PluginResult | Promise<PluginResult>
@@ -62,20 +64,17 @@ export interface RecaptchaOptions {
   action?: string
   endpoint: string
   threshold?: number
-  referrer?: "direct" | "internal" | "external"
   saveTokens?: boolean
 }
 
 export interface TurnstileOptions {
   siteKey: string
   endpoint: string
-  referrer?: "direct" | "internal" | "external"
   appearance?: "always" | "execute" | "interaction-only"
+  saveTokens?: boolean
 }
 
-export interface HardwareOptions {
-  referrer?: "direct" | "internal" | "external"
-}
+export interface HardwareOptions {}
 
 export interface AnalyzeOptions {
   mode?: AnalyzeMode
