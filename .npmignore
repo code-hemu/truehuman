@@ -27,5 +27,3 @@ package-lock.json
 eslint.config.js
 rollup.config.js
 playwright.config.ts
-
-index.js
