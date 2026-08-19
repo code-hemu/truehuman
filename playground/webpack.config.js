@@ -1,16 +1,14 @@
 import path from "path"
 import { fileURLToPath } from "url"
-import type { Configuration } from "webpack"
 import webpack from "webpack"
-import type { Configuration as DevServerConfiguration } from "webpack-dev-server"
 import HtmlWebpackPlugin from "html-webpack-plugin"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const configurationFactory = (_env: unknown, { mode = "development" }: { mode: string }): Configuration => ({
+const configurationFactory = (_env, { mode = "development" } = {}) => ({
   context: __dirname,
   entry: "./index.ts",
-  mode: mode as Configuration["mode"],
+  mode,
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
     extensionAlias: {
@@ -50,7 +48,7 @@ const configurationFactory = (_env: unknown, { mode = "development" }: { mode: s
   devServer: {
     host: "0.0.0.0",
     allowedHosts: "all",
-  } satisfies DevServerConfiguration,
+  },
   plugins: [
     new webpack.DefinePlugin({ __DEV__: JSON.stringify(mode === "development") }),
     new HtmlWebpackPlugin({

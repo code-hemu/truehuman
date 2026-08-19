@@ -39,7 +39,7 @@ jobs:
         run: npm ci
 
       - name: Build playground
-        run: npx webpack --config playground/webpack.config.ts --mode production
+        run: npx webpack --config playground/webpack.config.js --mode production
 
       - name: Skip Jekyll processing
         run: touch playground/dist/.nojekyll
