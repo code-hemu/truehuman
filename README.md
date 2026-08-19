@@ -24,6 +24,12 @@ TrueHuman is a bot detection library for web applications. It performs browser i
 - **Zero runtime dependencies** - The entire library ships as roughly 10 KB when gzipped, with no third-party packages required at runtime. Optional plugin dependencies are loaded only when you configure a plugin.
 - **UMD / ESM / CJS** - Distributed in all three module formats so it works natively with any modern bundler, import system, or via a plain script tag from a CDN.
 
+## Demo
+
+Visit [**TrueHuman Playground**](https://code-hemu.github.io/truehuman/) to try TrueHuman directly in your browser.
+
+Now, open the same page in **private/incognito mode** and compare the results. See how TrueHuman identifies your browser environment across different sessions.
+
 ## Quick Start
 
 Install the package from npm:
