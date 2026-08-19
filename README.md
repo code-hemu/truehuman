@@ -18,17 +18,15 @@
 
 TrueHuman is a bot detection library for web applications. It performs browser integrity checks and uses passive fingerprinting signals to create a risk score. Optional reCAPTCHA and Turnstile plugins offer extra server-side verification.
 
+Visit [**TrueHuman Playground**](https://code-hemu.github.io/truehuman/) to try TrueHuman directly in your browser.
+
+Now, open the same page in **private/incognito mode** and compare the results. See how TrueHuman identifies your browser environment across different sessions.
+
 - **20+ detectors** - Inspects canvas output, WebGL metadata, installed fonts, audio context latency, screen geometry, navigator object properties, and known automation flags left behind by headless browsers and driver frameworks.
 - **Plugin system** - Integrates with Google reCAPTCHA v3 and Cloudflare Turnstile to add server-validated signals on top of the passive client-side checks, giving you a layered defence that is much harder to spoof.
 - **Risk scoring** - Produces a cumulative 0 to 100 risk score alongside a verdict of `human`, `suspicious`, or `bot`, and a confidence value that is the direct inverse of the risk score.
 - **Zero runtime dependencies** - The entire library ships as roughly 10 KB when gzipped, with no third-party packages required at runtime. Optional plugin dependencies are loaded only when you configure a plugin.
 - **UMD / ESM / CJS** - Distributed in all three module formats so it works natively with any modern bundler, import system, or via a plain script tag from a CDN.
-
-## Demo
-
-Visit [**TrueHuman Playground**](https://code-hemu.github.io/truehuman/) to try TrueHuman directly in your browser.
-
-Now, open the same page in **private/incognito mode** and compare the results. See how TrueHuman identifies your browser environment across different sessions.
 
 ## Quick Start
 
