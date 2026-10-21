@@ -42,3 +42,4 @@ nul
 
 # Standalone copies / scratch
 index.js
+package-lock.json
