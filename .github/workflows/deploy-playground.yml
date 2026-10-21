@@ -39,7 +39,16 @@ jobs:
         run: npm ci
 
       - name: Build playground
-        run: npx webpack --config playground/webpack.config.js --mode production
+        run: npx guchho build
+        working-directory: playground
+
+      - name: Verify build output
+        run: |
+          if [ ! -d "playground/dist" ]; then
+            echo "Guchho build did not create playground/dist" >&2
+            ls -la playground
+            exit 1
+          fi
 
       - name: Skip Jekyll processing
         run: touch playground/dist/.nojekyll
