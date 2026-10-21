@@ -50,11 +50,13 @@ function decodeSignals(
   for (const code of integritychecks) {
     const entry = lookupCode(code)
     if (entry) {
-      evidence.get(entry.component)!.push({
+      const bucket = evidence.get(entry.component) ?? []
+      bucket.push({
         detector: entry.detector,
         ...(__DEV__ ? { message: lookupMessage(code) ?? "" } : {}),
         code,
       })
+      evidence.set(entry.component, bucket)
       riskScore += entry.risk
     }
   }
