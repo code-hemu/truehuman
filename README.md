@@ -179,9 +179,11 @@ The following npm scripts are available for building and testing the library loc
 
 ```bash
 npm run build      # Compiles the source into dist/ in UMD, ESM, and CJS formats
-npm test           # Runs the test suite using Vitest
+npm test           # Compiles the source to .test-build/ and runs the suite with the Node.js test runner (node:test)
 npm run typecheck  # Runs the TypeScript compiler in check-only mode with tsc --noEmit
 ```
+
+The test suite uses the built-in `node:test` runner and a small browser stub in `tests/dom-stub.mjs`, so it needs Node.js 22 or newer and no extra dependencies.
 
 
 ## License
