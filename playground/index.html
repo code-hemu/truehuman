@@ -3,84 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= htmlWebpackPlugin.options.title %></title>
-  <link rel="icon" type="image/png" href="<%= require('../resources/favicon.ico').default %>" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 720px; margin: 0 auto; color: #1a1a2e; }
-    .content { display: flex; flex-direction: column; min-height: 100vh; }
-    header { margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-    header img { height: 2.5rem; max-width: 100%; }
-    .buttons button {
-      border: none;
-      background: #542064;
-      color: #fff;
-      font: inherit;
-      font-size: 88%;
-      font-weight: 600;
-      line-height: 1.2;
-      border-radius: 0.57em;
-      cursor: pointer;
-      margin: 0;
-      padding: 0.85em 1.7em;
-      text-align: center;
-      outline: none;
-      transition: all 0.25s ease-out;
-    }
-    .buttons button:hover { background: #0c2472; }
-    .buttons button:active { background: #5c1d08; }
-    .buttons button:disabled { cursor: not-allowed; background: #877ce9; }
-    h1 { font-size: 1.5rem; margin-bottom: .5rem; }
-    p { color: #555; margin-bottom: 1.25rem; font-size: .875rem; }
-    #result { background: #f4f4f8; padding: 1.25rem; border-radius: 10px; font-size: .875rem; }
-    .verdict-row { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-bottom: .75rem; }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .875rem; font-weight: 700; }
-    .badge-human { background: #dcfce7; color: #166534; }
-    .badge-suspicious { background: #fef9c3; color: #854d0e; }
-    .badge-bot { background: #fee2e2; color: #411b99; }
-    .stat { font-size: .875rem; color: #555; }
-    .stat strong { color: #1a1a2e; }
-    .section { margin-top: .75rem; border-top: 1px solid #e0e0e8; padding-top: .75rem; }
-    .section-title { font-weight: 600; margin-bottom: .5rem; font-size: .8125rem; text-transform: uppercase; letter-spacing: .03em; color: #666; }
-    .evidence { margin-left: 1.25rem; padding: .25rem 0 .25rem .75rem; border-left: 2px solid #ddd; font-size: .8rem; color: #555; }
-    .evidence code { background: #e8e8ee; padding: 1px 5px; border-radius: 3px; font-size: .775rem; }
-    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e0e0e8; }
-    table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
-    thead { background: #eaeaef; }
-    th { font-weight: 600; color: #444; text-transform: uppercase; letter-spacing: .04em; font-size: .6875rem; padding: 10px 12px; text-align: left; }
-    td { padding: 8px 12px; border-top: 1px solid #e0e0e8; }
-    tbody tr { transition: background .15s; }
-    tbody tr:nth-child(even) { background: #f0f0f5; }
-    tbody tr:hover { background: #e4e4ef; }
-    .val-cell { cursor: help; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: .75rem; color: #444; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .duration-cell { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: .75rem; color: #666; text-align: right; white-space: nowrap; }
-    details { margin-top: .5rem; }
-    summary { cursor: pointer; font-weight: 600; color: #666; font-size: .8125rem; }
-    pre { background: #1a1a2e; color: #f4f4f8; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .775rem; line-height: 1.5; tab-size: 2; }
-    .heading { font-size: .8125rem; font-weight: 600; color: #666; margin-bottom: .5em; text-transform: uppercase; letter-spacing: .03em; }
-    #result pre:first-child { margin-bottom: .75rem; }
-
-    @media (max-width: 768px), (max-height: 568px) {
-      body { padding: 1rem; }
-      .buttons button { padding: 0.7em 1em; }
-      #result { padding: .75rem 1rem; }
-    }
-  </style>
+  <title>TrueHuman Playgroun</title>
+  <link rel="icon" type="image/png" href="../resources/favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
   <div class="content">
     <header>
-      <a href="<%= require('../package.json').homepage %>">
-        <img src="<%= require('../resources/dark_logo.png').default %>" alt="TrueHuman logo" />
+      <a href="https://github.com/code-hemu/truehuman/">
+        <img src="../resources/dark_logo.png" alt="TrueHuman logo" />
       </a>
       <div class="buttons">
         <button disabled id="debugCopy">Copy Public Data</button>
         <button disabled id="debugShare">Share Public Data</button>
       </div>
     </header>
-    <p>Client-side bot detection. All modes (public / debug) merged into one view.</p>
+    <p>Client-side bot detection. All modes (public / debug) merged into one .</p>
 
     <div id="result"></div>
+    <script src="index.ts"></script>
   </div>
 </body>
 </html>
