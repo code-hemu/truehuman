@@ -56,7 +56,7 @@
   ],
   "scripts": {
     "clean": "guchho clean",
-    "test": "",
+    "test": "tsc -p tsconfig.test.json && node --test \"tests/**/*.test.mjs\"",
     "dev": "cd playground && guchho dev --open",
     "build": "guchho build",
     "playground:build": "cd playground && guchho build",
